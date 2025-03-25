@@ -14,6 +14,7 @@ class UserSeeder extends Seeder
         $superadmin = User::create([
             'userId' => Str::orderedUuid(),
             'name' => 'Superadmin',
+            'initial' => 'SAM',
             'email' => 'superadmin@medquest.co.id',
             'password' => Hash::make('Superadmin2025!')
         ]);
