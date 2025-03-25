@@ -20,10 +20,10 @@ return new class extends Migration
             $table->string('serial_no');
             $table->integer('observed_temperature_start');
             $table->integer('observed_temperature_end');
-            $table->time('time_0800');
-            $table->decimal('temp_0800', 5, 2);
-            $table->integer('rh_0800');
-            $table->string('pic_0800');
+            $table->time('time_0800')->nullable();
+            $table->decimal('temp_0800', 5, 2)->nullable();
+            $table->integer('rh_0800')->nullable();
+            $table->string('pic_0800')->nullable();
             $table->time('time_1100')->nullable();
             $table->decimal('temp_1100', 5, 2)->nullable();
             $table->integer('rh_1100')->nullable();
