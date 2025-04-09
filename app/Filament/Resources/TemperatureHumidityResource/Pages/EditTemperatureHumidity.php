@@ -50,7 +50,7 @@ class EditTemperatureHumidity extends EditRecord
                 break;
             }
         }
-        
+            
         // Trigger deviation if value out of range
         $deviationDetected = false;
         foreach ($tempFields as $field) {
