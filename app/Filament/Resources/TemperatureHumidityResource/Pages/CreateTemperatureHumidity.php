@@ -24,12 +24,15 @@ class CreateTemperatureHumidity extends CreateRecord
         }
 
         // Assign observed temperature values correctly
-        $observedTempsArray = implode('', $data['observed_temperature']);
-        $observedTemps = explode('|', $observedTempsArray);
+        // $observedTempsArray = implode('', $data['observed_temperature']);
+        $observedTemps = explode('|', $data['observed_temperature']);
         $data['location'] = 'Bizpark 1';
         $data['serial_no'] = '001';
 
         [$minTemp, $maxTemp] = $observedTemps;
+        // Store observed temperature range
+        $data['observed_temperature_start'] = $minTemp;
+        $data['observed_temperature_end'] = $maxTemp;
 
         $deviationDetected = false;
 
@@ -45,9 +48,27 @@ class CreateTemperatureHumidity extends CreateRecord
             session()->put('deviation_triggered', true);
         }
 
-        // Store observed temperature range
-        $data['observed_temperature_start'] = $minTemp;
-        $data['observed_temperature_end'] = $maxTemp;
+
+        // ✅ Automatically insert signature and date into the right PIC field
+        $now = Carbon::now()->timezone('Asia/Jakarta');
+        $signature = auth()->user()->initial . ' ' . strtoupper($now->format('d M Y'));
+
+        $timeWindows = [
+            'pic_0800' => ['start' => '08:00', 'end' => '10:59'],
+            'pic_1100' => ['start' => '11:00', 'end' => '13:59'],
+            'pic_1400' => ['start' => '14:00', 'end' => '16:59'],
+            'pic_1700' => ['start' => '17:00', 'end' => '18:59'],
+        ];
+
+        foreach ($timeWindows as $picField => $window) {
+            $start = Carbon::createFromTimeString($window['start'], 'Asia/Jakarta');
+            $end = Carbon::createFromTimeString($window['end'], 'Asia/Jakarta');
+
+            if ($now->between($start, $end)) {
+                $data[$picField] = $signature;
+                break; // Only apply to current window
+            }
+        }
 
         return $data;
     }
@@ -58,7 +79,8 @@ class CreateTemperatureHumidity extends CreateRecord
         // Retrieve the observed temperature range
         $minTemp = $temperatureHumidity->observed_temperature_start;
         $maxTemp = $temperatureHumidity->observed_temperature_end;
-// Define temperature fields linked to their respective time fields
+        $observedTemperature = $minTemp . '|' . $maxTemp;
+        // Define temperature fields linked to their respective time fields
         $timeSlots = [
             'temp_0800' => 'time_0800',
             'temp_1100' => 'time_1100',
@@ -74,6 +96,7 @@ class CreateTemperatureHumidity extends CreateRecord
             if (!is_null($tempValue) && ($tempValue < $minTemp || $tempValue > $maxTemp)) {
                 $deviationData[] = [
                     'temperature_id' => $temperatureHumidity->id,
+                    'temp_range' => $observedTemperature,
                     'time' => $inputtedTime,
                     'temperature_deviation' => $tempValue,
                 ];
@@ -82,7 +105,7 @@ class CreateTemperatureHumidity extends CreateRecord
         if (!empty($deviationData)) {
         session()->put('deviation_triggered', true);
         session()->put('deviation_data', $deviationData);
-    }
+        }
     }
     protected function getRedirectUrl(): string
     {
@@ -92,6 +115,7 @@ class CreateTemperatureHumidity extends CreateRecord
             $deviations = session()->pull('deviation_data', []);
             return TemperatureDeviationResource::getUrl('create',[
                 'temp_id' => $deviations[0]['temperature_id'],
+                'temp_range' => $deviations[0]['temp_range'],
                 'time' => $deviations[0]['time'],
                 'temperature_deviation' => $deviations[0]['temperature_deviation']
             ]); // Redirect to Deviation form

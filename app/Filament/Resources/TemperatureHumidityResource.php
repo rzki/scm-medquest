@@ -9,18 +9,20 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use App\Models\TemperatureHumidity;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Section;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Forms\Components\CheckboxList;
 use App\Filament\Resources\TemperatureHumidityResource\Pages;
 
 class TemperatureHumidityResource extends Resource
 {
     protected static ?string $model = TemperatureHumidity::class;
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 0;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
@@ -46,7 +48,7 @@ class TemperatureHumidityResource extends Resource
                         ->default(Carbon::now())
                         ->required(),   
                 ]),
-                CheckboxList::make('observed_temperature')
+                Radio::make('observed_temperature')
                     ->label('Observed Temperature')
                     ->options([
                         '15|30' => '15°C to 30°C',
@@ -55,6 +57,13 @@ class TemperatureHumidityResource extends Resource
                         '-35|-15' => '-35°C to -15°C',
                         '-25|-10' => '-25°C to -10°C',
                     ])
+                    ->formatStateUsing(function ($record) {
+                        if ($record && $record->observed_temperature_start && $record->observed_temperature_end) {
+                            return [$record->observed_temperature_start . '|' . $record->observed_temperature_end];
+                        }
+
+                        return [];
+                    })
                     ->columns(3),
                 Section::make('Time')
                     ->columns(3)
@@ -69,6 +78,7 @@ class TemperatureHumidityResource extends Resource
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
+                                    ->step(0.1)
                                     ->suffix('°C'),
                                 TextInput::make('rh_0800')
                                     ->label('Humidity')
@@ -154,6 +164,63 @@ class TemperatureHumidityResource extends Resource
                     ->label('Observed Temperature')
                     ->searchable()
                     ->formatStateUsing(fn ($record) => $record->observed_temperature_start.'°C to '.$record->observed_temperature_end. '°C'),
+                TextColumn::make('readings_summary')
+                    ->label('Temperature & Humidity Readings')
+                    ->formatStateUsing(function ($record) {
+                        $stack = [];
+
+                        $slots = [
+                            '08:00' => ['time' => 'time_0800', 'temp' => 'temp_0800', 'rh' => 'rh_0800'],
+                            '11:00' => ['time' => 'time_1100', 'temp' => 'temp_1100', 'rh' => 'rh_1100'],
+                            '14:00' => ['time' => 'time_1400', 'temp' => 'temp_1400', 'rh' => 'rh_1400'],
+                            '17:00' => ['time' => 'time_1700', 'temp' => 'temp_1700', 'rh' => 'rh_1700'],
+                        ];
+
+                        foreach ($slots as $label => $fields) {
+                            $time = $record->{$fields['time']} ?? '-';
+                            $temp = $record->{$fields['temp']} ?? '-';
+                            $rh   = $record->{$fields['rh']} ?? '-';
+                            $stack[] = "$label ($time) → Temp: $temp °C | RH: $rh%";
+                        }
+
+                        return implode("\n", $stack);
+                    })
+                    ->wrap()
+                // Stack::make([
+                //         TextColumn::make('time_0800')
+                //             ->label('Time')
+                //             ->formatStateUsing(fn ($record) => $record->time_0800 ? Carbon::parse($record->time_0800)->format('H:i') : '-'),
+                //         TextColumn::make('temp_0800')
+                //             ->label('Temperature')
+                //             ->suffix('°C'),
+                //         TextColumn::make('rh_0800')
+                //             ->label('Humidity')
+                //             ->suffix('%'),
+                //     ]),
+                // Stack::make([
+                //         TextColumn::make('time_1100')
+                //             ->formatStateUsing(fn ($record) => $record->time_1100 ? Carbon::parse($record->time_1100)->format('H:i') : '-'),
+                //         TextColumn::make('temp_1100')
+                //             ->suffix('°C'),
+                //         TextColumn::make('rh_1100')
+                //             ->suffix('%'),
+                //     ]),
+                // Stack::make([
+                //         TextColumn::make('time_1400')
+                //             ->formatStateUsing(fn ($record) => $record->time_1400 ? Carbon::parse($record->time_1400)->format('H:i') : '-'),
+                //         TextColumn::make('temp_1400')
+                //             ->suffix('°C'),
+                //         TextColumn::make('rh_1400')
+                //             ->suffix('%'),
+                //     ]),
+                // Stack::make([
+                //         TextColumn::make('time_1700')
+                //             ->formatStateUsing(fn ($record) => $record->time_1700 ? Carbon::parse($record->time_1700)->format('H:i') : '-'),
+                //         TextColumn::make('temp_1700')
+                //             ->suffix('°C'),
+                //         TextColumn::make('rh_1700')
+                //             ->suffix('%'),
+                //     ]),
                 
             ])
             ->filters([

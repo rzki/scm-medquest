@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('temperatures_humidities', function (Blueprint $table) {
+        Schema::create('temperature_humidities', function (Blueprint $table) {
             $table->id();
             $table->uuid('temperatureId')->unique();
             $table->date('date');
