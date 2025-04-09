@@ -19,7 +19,7 @@ use App\Filament\Resources\RoleResource\RelationManagers;
 class RoleResource extends Resource
 {
     protected static ?string $model = Role::class;
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
     protected static ?string $navigationIcon = 'heroicon-o-lock-closed';
     public static function canViewAny(): bool
     {
