@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use App\Models\TemperatureDeviation;
+use Filament\Forms\Components\Radio;
 use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
@@ -25,7 +26,7 @@ use App\Filament\Resources\TemperatureDeviationResource\RelationManagers;
 class TemperatureDeviationResource extends Resource
 {
     protected static ?string $model = TemperatureDeviation::class;
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
@@ -45,12 +46,15 @@ class TemperatureDeviationResource extends Resource
                     TimePicker::make('time')
                         ->label('Time')
                         ->seconds(false)
-                        ->default(fn()=> request()->get('time'))
+                        ->default(function () {
+                            $time = request()->get('time');
+                            return $time ? Carbon::createFromFormat('H:i', $time)->format('H:i') : null;
+                        })
                         ->required(),
                 ]),
                 Section::make('Temperature Range')
                 ->schema([
-                    CheckboxList::make('observed_temperature')
+                    Radio::make('observed_temperature')
                         ->label('Observed Temperature')
                         ->options([
                             '15|30' => '15°C to 30°C',
@@ -59,6 +63,13 @@ class TemperatureDeviationResource extends Resource
                             '-35|-15' => '-35°C to -15°C',
                             '-25|-10' => '-25°C to -10°C',
                         ])
+                        ->formatStateUsing(function () {
+                            $tempRange = request()->get('temp_range');
+                            if ($tempRange && str_contains($tempRange, '|')) {
+                                return [$tempRange];
+                            }
+                            return [];
+                        })
                         ->columns(3),
                     ]),
                 Section::make('Temperature Deviation & Reason (Filled by Staff) ')

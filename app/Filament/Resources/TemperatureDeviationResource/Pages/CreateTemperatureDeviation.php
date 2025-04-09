@@ -14,7 +14,6 @@ class CreateTemperatureDeviation extends CreateRecord
     {
         $data['temperatureDeviationId'] = Str::orderedUuid();
         $data['date'] = Carbon::now();
-        $data['time'] = request()->get('time');
         return $data;
     }
 }

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignIdFor(TemperatureHumidity::class, 'temperature_id');
             $table->date('date');
             $table->time('time');
+            $table->string('temperature_range')->max(7);
             $table->decimal('temperature_deviation', 5, 2);
             $table->integer('length_temperature_deviation');
             $table->string('deviation_reason');
