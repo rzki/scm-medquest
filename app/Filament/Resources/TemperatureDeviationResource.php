@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
@@ -54,8 +55,8 @@ class TemperatureDeviationResource extends Resource
                 ]),
                 Section::make('Temperature Range')
                 ->schema([
-                    Radio::make('observed_temperature')
-                        ->label('Observed Temperature')
+                    Radio::make('temperature_range')
+                        ->label('Storage Temperature')
                         ->options([
                             '15|30' => '15°C to 30°C',
                             '15|25' => '15°C to 25°C',
@@ -63,12 +64,12 @@ class TemperatureDeviationResource extends Resource
                             '-35|-15' => '-35°C to -15°C',
                             '-25|-10' => '-25°C to -10°C',
                         ])
-                        ->formatStateUsing(function () {
+                        ->formatStateUsing(function ($record) {
                             $tempRange = request()->get('temp_range');
                             if ($tempRange && str_contains($tempRange, '|')) {
                                 return [$tempRange];
                             }
-                            return [];
+                            return [$record->temperature_range];
                         })
                         ->columns(3),
                     ]),
@@ -100,7 +101,28 @@ class TemperatureDeviationResource extends Resource
     {
         return $table
             ->columns([
-                //
+                TextColumn::make('date')
+                    ->label('Date (Tanggal)')
+                    ->sortable()
+                    ->searchable()
+                    ->date('d/m/Y'),
+                TextColumn::make('time')
+                    ->label('Time (Jam)')
+                    ->sortable()
+                    ->searchable()
+                    ->time('H:i'),
+                TextColumn::make('temperature_deviation')
+                    ->label('Temperature Deviation (°C)'),
+                TextColumn::make('length_temperature_deviation')
+                    ->label('Length of Temperature Deviation (Menit/Jam)'),
+                TextColumn::make('deviation_reason')
+                    ->label('Reason for Deviation'),
+                TextColumn::make('pic')
+                    ->label('PIC (SCM)'),
+                TextColumn::make('risk_analysis')
+                    ->label('Risk Analysis of impact deviation'),
+                TextColumn::make('analyzer_pic')
+                    ->label('Analyzed by (QA)'),
             ])
             ->filters([
                 //
