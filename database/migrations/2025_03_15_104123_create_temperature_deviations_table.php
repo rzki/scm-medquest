@@ -25,6 +25,12 @@ return new class extends Migration
             $table->string('pic');
             $table->string('risk_analysis');
             $table->string('analyzer_pic');
+            $table->boolean('is_reviewed')->default(false);
+            $table->string('reviewed_by');
+            $table->dateTime('reviewed_at');
+            $table->boolean('is_acknowledged')->default(false);
+            $table->string('acknowledged_by');
+            $table->dateTime('acknowledged_at');
             $table->timestamps();
         });
     }

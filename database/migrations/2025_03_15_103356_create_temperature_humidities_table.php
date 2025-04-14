@@ -36,6 +36,12 @@ return new class extends Migration
             $table->decimal('temp_1700', 5, 2)->nullable();
             $table->integer('rh_1700')->nullable();
             $table->string('pic_1700')->nullable();
+            $table->boolean('is_reviewed')->default(false);
+            $table->string('reviewed_by');
+            $table->dateTime('reviewed_at');
+            $table->boolean('is_acknowledged')->default(false);
+            $table->string('acknowledged_by');
+            $table->dateTime('acknowledged_at');
             $table->timestamps();
         });
     }

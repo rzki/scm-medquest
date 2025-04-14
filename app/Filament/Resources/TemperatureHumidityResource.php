@@ -83,11 +83,11 @@ class TemperatureHumidityResource extends Resource
                                 TextInput::make('rh_0800')
                                     ->label('Humidity')
                                     ->suffix('%'),
-                            ]),
-                            // ->disabled(fn () => 
-                            //         Carbon::now('Asia/Jakarta')->format('H:i') < '08:00' || 
-                            //         Carbon::now('Asia/Jakarta')->format('H:i') > '11:00'
-                            //     ),
+                            ])
+                            ->disabled(fn () => 
+                                    Carbon::now('Asia/Jakarta')->format('H:i') < '08:00' || 
+                                    Carbon::now('Asia/Jakarta')->format('H:i') > '10:59'
+                                ),
                         Section::make('1100')
                             ->columns(3)
                             ->schema([
@@ -104,7 +104,7 @@ class TemperatureHumidityResource extends Resource
                                     ->suffix('%'),
                             ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '11:00' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') > '14:00'
+                                    Carbon::now('Asia/Jakarta')->format('H:i') > '13:59'
                                 ),
                         Section::make('1400')
                             ->columns(3)
@@ -122,7 +122,7 @@ class TemperatureHumidityResource extends Resource
                                     ->suffix('%'),
                             ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '14:00' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') > '17:00'
+                                    Carbon::now('Asia/Jakarta')->format('H:i') > '16:59'
                                 ),
                         Section::make('1700')
                             ->columns(3)
@@ -140,7 +140,7 @@ class TemperatureHumidityResource extends Resource
                                     ->suffix('%'),
                             ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '17:00' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') > '08:00'
+                                    Carbon::now('Asia/Jakarta')->format('H:i') > '07:59'
                                 ),
                     ])
             ])->columns(1);
@@ -155,72 +155,53 @@ class TemperatureHumidityResource extends Resource
                     ->searchable(),
                 TextColumn::make('period')
                     ->label('Period')
+                    ->formatStateUsing(fn ($record) => strtoupper(Carbon::parse($record->period)->format('M Y')))
                     ->searchable(),
                 TextColumn::make('location')
                     ->label('Location / Serial No.')
                     ->searchable()
                     ->formatStateUsing(fn ($record) => $record->location.' / '.$record->serial_no),
-                TextColumn::make('observed_temperature_start')
-                    ->label('Observed Temperature')
+                TextColumn::make('storage_temps')
+                    ->label('Storage Temps')
                     ->searchable()
-                    ->formatStateUsing(fn ($record) => $record->observed_temperature_start.'°C to '.$record->observed_temperature_end. '°C'),
-                TextColumn::make('readings_summary')
-                    ->label('Temperature & Humidity Readings')
-                    ->formatStateUsing(function ($record) {
-                        $stack = [];
-
-                        $slots = [
-                            '08:00' => ['time' => 'time_0800', 'temp' => 'temp_0800', 'rh' => 'rh_0800'],
-                            '11:00' => ['time' => 'time_1100', 'temp' => 'temp_1100', 'rh' => 'rh_1100'],
-                            '14:00' => ['time' => 'time_1400', 'temp' => 'temp_1400', 'rh' => 'rh_1400'],
-                            '17:00' => ['time' => 'time_1700', 'temp' => 'temp_1700', 'rh' => 'rh_1700'],
-                        ];
-
-                        foreach ($slots as $label => $fields) {
-                            $time = $record->{$fields['time']} ?? '-';
-                            $temp = $record->{$fields['temp']} ?? '-';
-                            $rh   = $record->{$fields['rh']} ?? '-';
-                            $stack[] = "$label ($time) → Temp: $temp °C | RH: $rh%";
-                        }
-
-                        return implode("\n", $stack);
-                    })
-                    ->wrap()
-                // Stack::make([
-                //         TextColumn::make('time_0800')
-                //             ->label('Time')
-                //             ->formatStateUsing(fn ($record) => $record->time_0800 ? Carbon::parse($record->time_0800)->format('H:i') : '-'),
-                //         TextColumn::make('temp_0800')
-                //             ->label('Temperature')
-                //             ->suffix('°C'),
-                //         TextColumn::make('rh_0800')
-                //             ->label('Humidity')
-                //             ->suffix('%'),
-                //     ]),
-                // Stack::make([
-                //         TextColumn::make('time_1100')
-                //             ->formatStateUsing(fn ($record) => $record->time_1100 ? Carbon::parse($record->time_1100)->format('H:i') : '-'),
-                //         TextColumn::make('temp_1100')
-                //             ->suffix('°C'),
-                //         TextColumn::make('rh_1100')
-                //             ->suffix('%'),
-                //     ]),
-                // Stack::make([
-                //         TextColumn::make('time_1400')
-                //             ->formatStateUsing(fn ($record) => $record->time_1400 ? Carbon::parse($record->time_1400)->format('H:i') : '-'),
-                //         TextColumn::make('temp_1400')
-                //             ->suffix('°C'),
-                //         TextColumn::make('rh_1400')
-                //             ->suffix('%'),
-                //     ]),
-                // Stack::make([
-                //         TextColumn::make('time_1700')
-                //             ->formatStateUsing(fn ($record) => $record->time_1700 ? Carbon::parse($record->time_1700)->format('H:i') : '-'),
-                //         TextColumn::make('temp_1700')
-                //             ->suffix('°C'),
-                //         TextColumn::make('rh_1700')
-                //             ->suffix('%'),
-                //     ]),
+                    ->getStateUsing(fn ($record) => $record->observed_temperature_start.'°C to '.$record->observed_temperature_end.'°C'),
+                TextColumn::make('0800_data')
+                    ->label('08:00')
+                    ->getStateUsing(function ($record) {
+                        $temp0800 = $record->temp_0800 ?? '-';
+                        $time0800 = $record->time_0800 ? Carbon::parse($record->time_0800)->format('H:i') : '-';
+                        $rh0800 = $record->rh_0800 ?? '-';
+                        $pic0800 = $record->pic_0800 ?? '-';
+                        return "Time: $time0800 <br> Temp: $temp0800 °C <br> Humidity: $rh0800% <br> PIC: $pic0800";
+                    })->html(),
+                TextColumn::make('1100_data')
+                    ->label('11:00')
+                    ->getStateUsing(function ($record) {
+                        $temp1100 = $record->temp_1100 ?? '-';
+                        $time1100 = $record->time_1100 ? Carbon::parse($record->time_1100)->format('H:i') : '-';
+                        $rh1100 = $record->rh_1100 ?? '-';
+                        $pic1100 = $record->pic_1100 ?? '-';
+                        return "Time: $time1100 <br> Temp: $temp1100 °C <br> Humidity: $rh1100% <br> PIC: $pic1100";
+                    })->html(),
+                TextColumn::make('1400_data')
+                    ->label('14:00')
+                    ->getStateUsing(function ($record) {
+                        $temp1400 = $record->temp_1400 ?? '-';
+                        $time1400 = $record->time_1400 ? Carbon::parse($record->time_1400)->format('H:i') : '-';
+                        $rh1400 = $record->rh_1400 ?? '-';
+                        $pic1400 = $record->pic_1400 ?? '-';
+                        return "Time: $time1400 <br> Temp: $temp1400 °C <br> Humidity: $rh1400% <br> PIC: $pic1400";
+                    })->html(),
+                    
+                TextColumn::make('1700_data')
+                    ->label('17:00')
+                    ->getStateUsing(function ($record) {
+                        $temp1700 = $record->temp_1700 ?? '-';
+                        $time1700 = $record->time_1700 ? Carbon::parse($record->time_1700)->format('H:i') : '-';
+                        $rh1700 = $record->rh_1700 ?? '-';
+                        $pic1700 = $record->pic_1700 ?? '-';
+                        return "Time: $time1700 <br> Temp: $temp1700 °C <br> Humidity: $rh1700% <br> PIC: $pic1700";
+                    })->html(),
                 
             ])
             ->filters([
