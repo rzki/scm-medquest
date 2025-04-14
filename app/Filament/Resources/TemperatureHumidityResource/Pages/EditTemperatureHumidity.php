@@ -4,7 +4,9 @@ namespace App\Filament\Resources\TemperatureHumidityResource\Pages;
 
 use Carbon\Carbon;
 use Filament\Actions;
+use Filament\Actions\Action;
 use App\Models\TemperatureHumidity;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Resources\Pages\EditRecord;
 use App\Filament\Resources\TemperatureHumidityResource;
@@ -127,6 +129,20 @@ class EditTemperatureHumidity extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('is_reviewed')
+                ->label('Mark as Reviewed')
+                ->visible(fn () => Auth::user()?->hasRole('Supply Chain Manager'))
+                ->action(function (Model $record) {
+                    $record->update([
+                        'is_reviewed' => true,
+                        'reviewed_by' => auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y')),
+                        'reviewed_at' => now('Asia/Jakarta'),
+                    ]);
+                    $this->notify('success', 'Temperature Humidity record marked as reviewed');
+                })
+                ->requiresConfirmation()
+                ->color('success')
+                ->icon('heroicon-o-check'),
             Actions\DeleteAction::make(),
         ];
     }
