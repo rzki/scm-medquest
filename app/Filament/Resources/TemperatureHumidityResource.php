@@ -49,7 +49,7 @@ class TemperatureHumidityResource extends Resource
                         ->required(),   
                 ]),
                 Radio::make('observed_temperature')
-                    ->label('Observed Temperature')
+                    ->label('Storage Temperature')
                     ->options([
                         '15|30' => '15°C to 30°C',
                         '15|25' => '15°C to 25°C',

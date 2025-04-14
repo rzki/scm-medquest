@@ -37,11 +37,11 @@ return new class extends Migration
             $table->integer('rh_1700')->nullable();
             $table->string('pic_1700')->nullable();
             $table->boolean('is_reviewed')->default(false);
-            $table->string('reviewed_by');
-            $table->dateTime('reviewed_at');
+            $table->string('reviewed_by')->nullable();
+            $table->dateTime('reviewed_at')->nullable();
             $table->boolean('is_acknowledged')->default(false);
-            $table->string('acknowledged_by');
-            $table->dateTime('acknowledged_at');
+            $table->string('acknowledged_by')->nullable();
+            $table->dateTime('acknowledged_at')->nullable();
             $table->timestamps();
         });
     }
