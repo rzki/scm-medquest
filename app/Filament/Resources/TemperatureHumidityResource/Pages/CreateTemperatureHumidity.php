@@ -25,10 +25,10 @@ class CreateTemperatureHumidity extends CreateRecord
 
         // Assign observed temperature values correctly
         // $observedTempsArray = implode('', $data['observed_temperature']);
-        $observedTemps = explode('|', $data['observed_temperature']);
         $data['location'] = 'Bizpark 1';
         $data['serial_no'] = '001';
-
+        
+        $observedTemps = explode('|', $data['observed_temperature']);
         [$minTemp, $maxTemp] = $observedTemps;
         // Store observed temperature range
         $data['observed_temperature_start'] = $minTemp;
