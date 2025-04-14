@@ -243,6 +243,7 @@ class TemperatureHumidityResource extends Resource
             'index' => Pages\ListTemperatureHumidities::route('/'),
             'create' => Pages\CreateTemperatureHumidity::route('/create'),
             'edit' => Pages\EditTemperatureHumidity::route('/{record}/edit'),
+            'view' => Pages\ViewTemperatureHumidity::route('/view/{record}'),
         ];
     }
 }
