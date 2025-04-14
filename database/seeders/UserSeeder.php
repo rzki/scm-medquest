@@ -20,5 +20,25 @@ class UserSeeder extends Seeder
         ]);
 
         $superadmin->assignRole('Super Admin');
+
+        $supplyChainManager = User::create([
+            'userId' => Str::orderedUuid(),
+            'name' => 'Supply Chain Manager',
+            'initial' => 'SCM',
+            'email' => 'scm@medquest.co.id',
+            'password' => Hash::make('Scm2025!')
+        ]);
+
+        $supplyChainManager->assignRole('Supply Chain Manager');
+
+        $qaManager = User::create([
+            'userId' => Str::orderedUuid(),
+            'name' => 'QA Manager',
+            'initial' => 'QAM',
+            'email' => 'qam@medquest.co.id',
+            'password' => Hash::make('Scm2025!')
+        ]);
+
+        $qaManager->assignRole('QA Manager');
     }
 }
