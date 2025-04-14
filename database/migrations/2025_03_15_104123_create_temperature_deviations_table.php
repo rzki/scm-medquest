@@ -20,11 +20,11 @@ return new class extends Migration
             $table->time('time');
             $table->string('temperature_range')->max(7);
             $table->decimal('temperature_deviation', 5, 2);
-            $table->integer('length_temperature_deviation');
-            $table->string('deviation_reason');
+            $table->integer('length_temperature_deviation')->nullable();
+            $table->string('deviation_reason')->nullable();
             $table->string('pic');
-            $table->string('risk_analysis');
-            $table->string('analyzer_pic');
+            $table->string('risk_analysis')->nullable();
+            $table->string('analyzer_pic')->nullable();
             $table->boolean('is_reviewed')->default(false);
             $table->string('reviewed_by')->nullable();
             $table->dateTime('reviewed_at')->nullable();
