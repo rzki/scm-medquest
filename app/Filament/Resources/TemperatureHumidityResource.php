@@ -202,6 +202,18 @@ class TemperatureHumidityResource extends Resource
                         $pic1700 = $record->pic_1700 ?? '-';
                         return "Time: $time1700 <br> Temp: $temp1700 °C <br> Humidity: $rh1700% <br> PIC: $pic1700";
                     })->html(),
+                TextColumn::make('reviewed_by')
+                    ->label('Reviewed By')
+                    ->searchable()
+                    ->getStateUsing(function ($record){
+                        return $record->reviewed_by ? $record->reviewed_by : '-';
+                    }),
+                TextColumn::make('acknowledged_by')
+                    ->label('Acknowledged By')
+                    ->searchable()
+                    ->getStateUsing(function ($record){
+                        return $record->acknowledged_by ? $record->acknowledged_by : '-';
+                    }),
                 
             ])
             ->filters([
