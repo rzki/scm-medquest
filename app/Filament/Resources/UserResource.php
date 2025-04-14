@@ -4,13 +4,14 @@ namespace App\Filament\Resources;
 
 use Filament\Forms;
 use App\Models\User;
-use Filament\Forms\Components\TextInput;
 use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\UserResource\Pages;
@@ -23,6 +24,10 @@ class UserResource extends Resource
     protected static ?int $navigationSort = 4;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
+    public static function canViewAny(): bool
+    {
+        return Auth::user()->hasRole('Super Admin');
+    }
 
     public static function form(Form $form): Form
     {
@@ -31,6 +36,10 @@ class UserResource extends Resource
                 TextInput::make('name')
                     ->label('Name')
                     ->required(),
+                TextInput::make('initial')
+                    ->label('Initial')
+                    ->required()
+                    ->maxLength(3),
                 TextInput::make('email')
                     ->label('Email')
                     ->email()
