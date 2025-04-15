@@ -7,6 +7,8 @@ use Filament\Forms;
 use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Actions\ViewAction;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use App\Models\TemperatureHumidity;
 use Filament\Forms\Components\Radio;
@@ -17,6 +19,8 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\Section as InfoSection;
 use App\Filament\Resources\TemperatureHumidityResource\Pages;
 
 class TemperatureHumidityResource extends Resource
@@ -220,6 +224,7 @@ class TemperatureHumidityResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
@@ -230,6 +235,98 @@ class TemperatureHumidityResource extends Resource
             ]);
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                InfoSection::make('Date & Period')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('date')
+                            ->label('Date')
+                            ->formatStateUsing(fn ($record) => Carbon::parse($record->date)->format('d/m/Y')),
+                        TextEntry::make('period')
+                            ->label('Period')
+                            ->formatStateUsing(fn ($record) => strtoupper(Carbon::parse($record->period)->format('M Y'))),
+                    ]),
+                InfoSection::make('Reviewed & Acknowledged')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('reviewed_by')
+                            ->label('Reviewed By')
+                            ->formatStateUsing(fn ($record) => $record->reviewed_by ? $record->reviewed_by : '-'),
+                        TextEntry::make('acknowledged_by')
+                            ->label('Acknowledged By')
+                            ->formatStateUsing(fn ($record) => $record->acknowledged_by ? $record->acknowledged_by : '-'),
+                    ]),
+                InfoSection::make('Location & Storage Temperature Standards')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('location')
+                            ->label('Location')
+                            ->formatStateUsing(fn ($record) => $record->location.' / '.$record->serial_no),
+                        TextEntry::make('observed_temperature_start')
+                            ->label('Storage Temperature Standards')
+                            ->formatStateUsing(fn ($record) => $record->observed_temperature_start.'°C to '.$record->observed_temperature_end.'°C'),
+                    ]),
+                InfoSection::make('Time Range')
+                    ->columns(2)
+                    ->schema([
+                        InfoSection::make('08:00')
+                        ->columns(3)
+                        ->schema([
+                            TextEntry::make('time_0800')
+                                ->label('Time')
+                                ->formatStateUsing(fn ($record) => $record->time_0800 ? Carbon::parse($record->time_0800)->format('H:i') : '-'),
+                            TextEntry::make('temp_0800')
+                                ->label('Temperature')
+                                ->formatStateUsing(fn ($record) => $record->temp_0800.' °C' ?? '-'),
+                            TextEntry::make('rh_0800')
+                                ->label('Humidity')
+                                ->formatStateUsing(fn ($record) => $record->rh_0800.'%' ?? '-'),
+                        ]),
+                        InfoSection::make('11:00')
+                        ->columns(3)
+                        ->schema([
+                            TextEntry::make('time_1100')
+                                ->label('Time')
+                                ->formatStateUsing(fn ($record) => $record->time_1100 ? Carbon::parse($record->time_1100)->format('H:i') : '-'),
+                            TextEntry::make('temp_1100')
+                                ->label('Temperature')
+                                ->formatStateUsing(fn ($record) => $record->temp_1100.' °C' ?? '-'),
+                            TextEntry::make('rh_1100')
+                                ->label('Humidity')
+                                ->formatStateUsing(fn ($record) => $record->rh_1100.'%' ?? '-'),
+                        ]),
+                        InfoSection::make('14:00')
+                        ->columns(3)
+                        ->schema([
+                            TextEntry::make('time_1400')
+                                ->label('Time')
+                                ->formatStateUsing(fn ($record) => $record->time_1400 ? Carbon::parse($record->time_1400)->format('H:i') : '-'),
+                            TextEntry::make('temp_1400')
+                                ->label('Temperature')
+                                ->formatStateUsing(fn ($record) => $record->temp_1400.' °C' ?? '-'),
+                            TextEntry::make('rh_1400')
+                                ->label('Humidity')
+                                ->formatStateUsing(fn ($record) => $record->rh_1400.'%' ?? '-'),
+                        ]),
+                        InfoSection::make('17:00')
+                        ->columns(3)
+                        ->schema([
+                            TextEntry::make('time_1700')
+                                ->label('Time')
+                                ->formatStateUsing(fn ($record) => $record->time_1700 ? Carbon::parse($record->time_1700)->format('H:i') : '-'),
+                            TextEntry::make('temp_1700')
+                                ->label('Temperature')
+                                ->formatStateUsing(fn ($record) => $record->temp_1700.' °C' ?? '-'),
+                            TextEntry::make('rh_1700')
+                                ->label('Humidity')
+                                ->formatStateUsing(fn ($record) => $record->rh_1700.'%' ?? '-'),
+                        ]),
+                    ]),
+            ]);
+    }
     public static function getRelations(): array
     {
         return [
