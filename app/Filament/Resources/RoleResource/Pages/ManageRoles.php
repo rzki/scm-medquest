@@ -4,9 +4,9 @@ namespace App\Filament\Resources\RoleResource\Pages;
 
 use App\Filament\Resources\RoleResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
+use Filament\Resources\Pages\ManageRecords;
 
-class ListRoles extends ListRecords
+class ManageRoles extends ManageRecords
 {
     protected static string $resource = RoleResource::class;
 
