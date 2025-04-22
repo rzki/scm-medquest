@@ -5,17 +5,23 @@ namespace App\Filament\Resources;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Tables;
+use App\Models\Location;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Actions\Action;
 use Filament\Resources\Resource;
+use App\Models\TemperatureHumidity;
 use App\Models\TemperatureDeviation;
 use Filament\Forms\Components\Radio;
 use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Eloquent\Model;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
 use Illuminate\Database\Eloquent\Builder;
@@ -53,25 +59,61 @@ class TemperatureDeviationResource extends Resource
                         })
                         ->required(),
                 ]),
-                Section::make('Temperature Range')
-                ->schema([
-                    Radio::make('temperature_range')
-                        ->label('Storage Temperature')
-                        ->options([
-                            '15|30' => '15°C to 30°C',
-                            '15|25' => '15°C to 25°C',
-                            '2|8' => '2°C to 8°C',
-                            '-35|-15' => '-35°C to -15°C',
-                            '-25|-10' => '-25°C to -10°C',
-                        ])
-                        ->formatStateUsing(function ($record) {
-                            $tempRange = request()->get('temp_range');
-                            if ($tempRange && str_contains($tempRange, '|')) {
-                                return [$tempRange];
-                            }
-                            return [$record->temperature_range];
-                        })
-                        ->columns(3),
+                Section::make('Location & Storage Temperature Standards')
+                    ->columns(3)
+                    ->schema([
+                        Hidden::make('temperature_humidity_id')
+                        ->default(function () {
+                            $humidity = TemperatureHumidity::query()
+                                ->whereDate('created_at', now('Asia/Jakarta')->toDateString())
+                                ->latest()
+                                ->first();
+
+                            return $humidity->id;
+                        }),
+                        Select::make('location_id')
+                            ->label('Location')
+                            ->relationship('location')
+                            ->default(fn () => request()->get('location_id') ?? null)
+                            ->required()
+                            ->getOptionLabelFromRecordUsing(function ($record) {
+                                return "{$record->location_name} / {$record->serial_number}";
+                            })
+                            ->preload()
+                            ->searchable()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $location = Location::find($state);
+                                if ($location) {
+                                    $set('serial_number', $location->serial_number); // set the serial_number field
+                                    $formatted = "{$location->temperature_start}°C to {$location->temperature_end}°C";
+                                    $set('observed_temperature', $formatted);
+                                    $set('temperature_start', $location->temperature_start);
+                                    $set('temperature_end', $location->temperature_end);
+                                }
+                            })
+                            ->afterStateHydrated(function ($state, callable $set) {
+                                // Load values when editing
+                                $location = Location::find($state);
+
+                                if ($location) {
+                                    $set('serial_number', $location->serial_number);
+                                    $set('observed_temperature', "{$location->temperature_start}°C to {$location->temperature_end}°C");
+                                    $set('temperature_start', $location->temperature_start);
+                                    $set('temperature_end', $location->temperature_end);
+                                }
+                            })
+                            ->reactive()
+                            ->required(),
+                        TextInput::make('serial_number')
+                            ->label('Serial Number')
+                            ->required()
+                            ->disabled(),
+                        TextInput::make('observed_temperature')
+                            ->label('Storage Temperature Standards')
+                            ->disabled()
+                            ->dehydrated(false),
+                        Hidden::make('temperature_start'),
+                        Hidden::make('temperature_end')
                     ]),
                 Section::make('Temperature Deviation & Reason (Filled by Staff) ')
                 ->columns(2)
@@ -129,6 +171,7 @@ class TemperatureDeviationResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

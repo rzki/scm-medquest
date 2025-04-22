@@ -14,11 +14,11 @@ return new class extends Migration
     {
         Schema::create('temperature_deviations', function (Blueprint $table) {
             $table->id();
-            $table->uuid('temperatureDeviationId')->unique();
-            $table->foreignIdFor(TemperatureHumidity::class, 'temperature_id');
+            $table->uuid('temperatureDeviationId')->unique()->nullable();
+            $table->foreignId('temperature_humidity_id')->constrained('temperature_humidities')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('location_id')->constrained('locations')->cascadeOnDelete()->cascadeOnUpdate();
             $table->date('date');
             $table->time('time');
-            $table->string('temperature_range')->max(7);
             $table->decimal('temperature_deviation', 5, 2);
             $table->integer('length_temperature_deviation')->nullable();
             $table->string('deviation_reason')->nullable();
