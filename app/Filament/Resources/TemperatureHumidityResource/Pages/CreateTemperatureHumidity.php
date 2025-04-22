@@ -4,6 +4,7 @@ namespace App\Filament\Resources\TemperatureHumidityResource\Pages;
 
 use Carbon\Carbon;
 use Filament\Actions;
+use App\Models\Location;
 use Illuminate\Support\Str;
 use App\Models\TemperatureDeviation;
 use Filament\Notifications\Notification;
@@ -22,17 +23,10 @@ class CreateTemperatureHumidity extends CreateRecord
         foreach ($tempFields as $temp) {
             $data[$temp] = $data[$temp] ?? null;
         }
-
-        // Assign observed temperature values correctly
-        // $observedTempsArray = implode('', $data['observed_temperature']);
-        $data['location'] = 'Bizpark 1';
-        $data['serial_no'] = '001';
-        
-        $observedTemps = explode('|', $data['observed_temperature']);
-        [$minTemp, $maxTemp] = $observedTemps;
         // Store observed temperature range
-        $data['observed_temperature_start'] = $minTemp;
-        $data['observed_temperature_end'] = $maxTemp;
+        $location = Location::find($data['location_id']);
+        $minTemp = $location->temperature_start;
+        $maxTemp = $location->temperature_end;
 
         $deviationDetected = false;
 
@@ -76,10 +70,10 @@ class CreateTemperatureHumidity extends CreateRecord
     {
         // Retrieve the created Temperature Humidity record and set temperature and time that triggers deviation
         $temperatureHumidity = $this->record;
-        // Retrieve the observed temperature range
-        $minTemp = $temperatureHumidity->observed_temperature_start;
-        $maxTemp = $temperatureHumidity->observed_temperature_end;
-        $observedTemperature = $minTemp . '|' . $maxTemp;
+        // Retrieve the temperature range from the location
+        $location = $temperatureHumidity->location;
+        $minTemp = $location->temperature_start;
+        $maxTemp = $location->temperature_end;
         // Define temperature fields linked to their respective time fields
         $timeSlots = [
             'temp_0800' => 'time_0800',
@@ -96,7 +90,6 @@ class CreateTemperatureHumidity extends CreateRecord
             if (!is_null($tempValue) && ($tempValue < $minTemp || $tempValue > $maxTemp)) {
                 $deviationData[] = [
                     'temperature_id' => $temperatureHumidity->id,
-                    'temp_range' => $observedTemperature,
                     'time' => $inputtedTime,
                     'temperature_deviation' => $tempValue,
                 ];
@@ -115,7 +108,7 @@ class CreateTemperatureHumidity extends CreateRecord
             $deviations = session()->pull('deviation_data', []);
             return TemperatureDeviationResource::getUrl('create',[
                 'temp_id' => $deviations[0]['temperature_id'],
-                'temp_range' => $deviations[0]['temp_range'],
+                'location_id' => $deviations[0]['location_id'],
                 'time' => $deviations[0]['time'],
                 'temperature_deviation' => $deviations[0]['temperature_deviation']
             ]); // Redirect to Deviation form

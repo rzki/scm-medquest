@@ -12,4 +12,8 @@ class TemperatureHumidity extends Model
     {
         return $this->hasMany(TemperatureDeviation::class);
     }
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
+    }
 }

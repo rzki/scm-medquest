@@ -5,21 +5,31 @@ namespace App\Filament\Resources;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Tables;
+use App\Models\Location;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use App\Models\TemperatureHumidity;
+use Filament\Tables\Actions\Action;
 use Filament\Forms\Components\Radio;
+use Illuminate\Support\Facades\Auth;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
+use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Eloquent\Model;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
 use Filament\Tables\Columns\Layout\Stack;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Infolists\Components\TextEntry;
+use Illuminate\Database\Eloquent\Collection;
 use Filament\Infolists\Components\Section as InfoSection;
 use App\Filament\Resources\TemperatureHumidityResource\Pages;
 
@@ -52,23 +62,51 @@ class TemperatureHumidityResource extends Resource
                         ->default(Carbon::now())
                         ->required(),   
                 ]),
-                Radio::make('observed_temperature')
-                    ->label('Storage Temperature')
-                    ->options([
-                        '15|30' => '15°C to 30°C',
-                        '15|25' => '15°C to 25°C',
-                        '2|8' => '2°C to 8°C',
-                        '-35|-15' => '-35°C to -15°C',
-                        '-25|-10' => '-25°C to -10°C',
-                    ])
-                    ->formatStateUsing(function ($record) {
-                        if ($record && $record->observed_temperature_start && $record->observed_temperature_end) {
-                            return [$record->observed_temperature_start . '|' . $record->observed_temperature_end];
-                        }
+                Section::make('Location & Storage Temperature Standards')
+                    ->columns(3)
+                    ->schema([
+                        Select::make('location_id')
+                            ->label('Location')
+                            ->relationship('location')
+                            ->getOptionLabelFromRecordUsing(function ($record) {
+                                return "{$record->location_name} / {$record->serial_number}";
+                            })
+                            ->preload()
+                            ->searchable()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $location = Location::find($state);
+                                if ($location) {
+                                    $set('serial_number', $location->serial_number); // set the serial_number field
+                                    $formatted = "{$location->temperature_start}°C to {$location->temperature_end}°C";
+                                    $set('observed_temperature', $formatted);
+                                    $set('temperature_start', $location->temperature_start);
+                                    $set('temperature_end', $location->temperature_end);
+                                }
+                            })
+                            ->afterStateHydrated(function ($state, callable $set) {
+                                // Load values when editing
+                                $location = Location::find($state);
 
-                        return [];
-                    })
-                    ->columns(3),
+                                if ($location) {
+                                    $set('serial_number', $location->serial_number);
+                                    $set('observed_temperature', "{$location->temperature_start}°C to {$location->temperature_end}°C");
+                                    $set('temperature_start', $location->temperature_start);
+                                    $set('temperature_end', $location->temperature_end);
+                                }
+                            })
+                            ->reactive()
+                            ->required(),
+                        TextInput::make('serial_number')
+                            ->label('Serial Number')
+                            ->required()
+                            ->disabled(),
+                        TextInput::make('observed_temperature')
+                            ->label('Storage Temperature Standards')
+                            ->disabled()
+                            ->dehydrated(false),
+                        Hidden::make('temperature_start'),
+                        Hidden::make('temperature_end')
+                    ]),
                 Section::make('Time')
                     ->columns(3)
                     ->schema([
@@ -90,7 +128,7 @@ class TemperatureHumidityResource extends Resource
                             ])
                             ->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '08:00' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') > '10:59'
+                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '11:31'
                                 ),
                         Section::make('1100')
                             ->columns(3)
@@ -107,8 +145,8 @@ class TemperatureHumidityResource extends Resource
                                     ->label('Humidity')
                                     ->suffix('%'),
                             ])->disabled(fn () => 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') < '11:00' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') > '13:59'
+                                    Carbon::now('Asia/Jakarta')->format('H:i') < '11:31' || 
+                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '14:31'
                                 ),
                         Section::make('1400')
                             ->columns(3)
@@ -125,8 +163,8 @@ class TemperatureHumidityResource extends Resource
                                     ->label('Humidity')
                                     ->suffix('%'),
                             ])->disabled(fn () => 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') < '14:00' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') > '16:59'
+                                    Carbon::now('Asia/Jakarta')->format('H:i') < '14:31' || 
+                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '17:30'
                                 ),
                         Section::make('1700')
                             ->columns(3)
@@ -143,8 +181,8 @@ class TemperatureHumidityResource extends Resource
                                     ->label('Humidity')
                                     ->suffix('%'),
                             ])->disabled(fn () => 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') < '17:00' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') > '07:59'
+                                    Carbon::now('Asia/Jakarta')->format('H:i') < '17:31' || 
+                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '19:30'
                                 ),
                     ])
             ])->columns(1);
@@ -153,6 +191,7 @@ class TemperatureHumidityResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date'))
             ->columns([
                 TextColumn::make('date')
                     ->label('Date')
@@ -161,14 +200,6 @@ class TemperatureHumidityResource extends Resource
                     ->label('Period')
                     ->formatStateUsing(fn ($record) => strtoupper(Carbon::parse($record->period)->format('M Y')))
                     ->searchable(),
-                TextColumn::make('location')
-                    ->label('Location / Serial No.')
-                    ->searchable()
-                    ->formatStateUsing(fn ($record) => $record->location.' / '.$record->serial_no),
-                TextColumn::make('storage_temps')
-                    ->label('Storage Temps')
-                    ->searchable()
-                    ->getStateUsing(fn ($record) => $record->observed_temperature_start.'°C to '.$record->observed_temperature_end.'°C'),
                 TextColumn::make('0800_data')
                     ->label('08:00')
                     ->getStateUsing(function ($record) {
@@ -226,10 +257,66 @@ class TemperatureHumidityResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Action::make('is_reviewed')
+                    ->label('Mark as Reviewed')
+                    ->visible(fn () => Auth::user()->hasRole(['Supply Chain Manager']))
+                    ->action(function (Model $record) {
+                        $record->update([
+                            'is_reviewed' => true,
+                            'reviewed_by' => auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y')),
+                            'reviewed_at' => now('Asia/Jakarta'),
+                        ]);
+                    Notification::make()
+                        ->title('Success!')
+                        ->body('Marked as reviewed successfully by Supply Chain Manager.')
+                        ->success()
+                        ->send();
+                    })
+                    ->requiresConfirmation()
+                    ->color('success')
+                    ->icon('heroicon-o-check'),
+                Action::make('is_acknowledged')
+                    ->label('Mark as Acknowledged')
+                    ->visible(fn () => Auth::user()->hasRole(['QA Manager']))
+                    ->action(function (Model $record) {
+                        $record->update([
+                            'is_acknowledged' => true,
+                            'acknowledged_by' => auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y')),
+                            'acknowledged_at' => now('Asia/Jakarta'),
+                        ]);
+                    Notification::make()
+                        ->title('Success!')
+                        ->body('Marked as acknowledged successfully by QA Manager.')
+                        ->success()
+                        ->send();
+                    })
+                    ->requiresConfirmation()
+                    ->color('info')
+                    ->icon('heroicon-o-check'),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    BulkAction::make('is_reviewed')
+                    ->label('Mark as Reviewed')
+                    ->icon('heroicon-o-check-badge')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn () => Auth::user()->hasRole(['Supply Chain Manager']))
+                    ->action(function (Collection $records) {
+                        foreach ($records as $record) {
+                            $record->is_reviewed = true;
+                            $record->reviewed_by = auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
+                            $record->reviewed_at = now('Asia/Jakarta');
+                            $record->save();
+                        }
+                        
+                    Notification::make()
+                        ->title('Success!')
+                        ->body('Selected data marked as reviewed successfully')
+                        ->success()
+                        ->send();
+                    }),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);

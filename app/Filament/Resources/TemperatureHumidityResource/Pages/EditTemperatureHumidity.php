@@ -23,16 +23,10 @@ class EditTemperatureHumidity extends EditRecord
         foreach ($tempFields as $temp) {
             $data[$temp] = $data[$temp] ?? null;
         }
-
-        // Assign observed temperature values correctly
-        $observedTempsArray = implode('', $data['observed_temperature']);
-        $observedTemps = explode('|', $observedTempsArray);
-        [$minTemp, $maxTemp] = $observedTemps;
-
-        // Store observed temperature range
-        $data['observed_temperature_start'] = $minTemp;
-        $data['observed_temperature_end'] = $maxTemp;   
-
+        // 🔄 Get temperature range from the selected location
+        $location = \App\Models\Location::find($data['location_id']);
+        $minTemp = $location->temperature_start;
+        $maxTemp = $location->temperature_end;
         // ✅ Auto-fill signature into current time window's PIC field
         $now = Carbon::now()->timezone('Asia/Jakarta');
         $signature = auth()->user()->initial . ' ' . strtoupper($now->format('d M Y'));
@@ -72,11 +66,10 @@ class EditTemperatureHumidity extends EditRecord
     protected function afterSave(): void
     {
         $record = $this->record;
-
-        // Get observed limits
-        $minTemp = $record->observed_temperature_start;
-        $maxTemp = $record->observed_temperature_end;
-        $observedTemperature = $minTemp . '|' . $maxTemp;
+        // Get temperature range from related location
+        $location = $record->location;
+        $minTemp = $location->temperature_start;
+        $maxTemp = $location->temperature_end;
         $now = Carbon::now()->timezone('Asia/Jakarta');
 
         $timeWindows = [
@@ -98,7 +91,7 @@ class EditTemperatureHumidity extends EditRecord
                     session()->put('deviation_triggered', true);
                     session()->put('deviation_data', [[ // wrap in array to match expected format
                         'temperature_id' => $record->id,
-                        'temp_range' => $observedTemperature,
+                        'location_id' => $record->location_id,
                         'time' => $timeValue,
                         'temperature_deviation' => $tempValue,
                     ]]);
@@ -117,7 +110,7 @@ class EditTemperatureHumidity extends EditRecord
             if (!empty($deviations) && isset($deviations[0])) {
                 return TemperatureDeviationResource::getUrl('create', [
                     'temp_id' => $deviations[0]['temperature_id'],
-                    'temp_range' => $deviations[0]['temp_range'],
+                    'location_id' => $this->record->location_id,
                     'time' => $deviations[0]['time'],
                     'temperature_deviation' => $deviations[0]['temperature_deviation'],
                 ]);

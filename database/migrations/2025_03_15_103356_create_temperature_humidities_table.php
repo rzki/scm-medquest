@@ -16,10 +16,7 @@ return new class extends Migration
             $table->uuid('temperatureId')->unique();
             $table->date('date');
             $table->date('period');
-            $table->string('location');
-            $table->string('serial_no');
-            $table->integer('observed_temperature_start');
-            $table->integer('observed_temperature_end');
+            $table->foreignId('location_id')->constrained('locations')->cascadeOnDelete()->cascadeOnUpdate();
             $table->time('time_0800')->nullable();
             $table->decimal('temp_0800', 5, 2)->nullable();
             $table->integer('rh_0800')->nullable();
