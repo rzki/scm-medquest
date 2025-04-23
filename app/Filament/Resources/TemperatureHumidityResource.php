@@ -8,7 +8,6 @@ use Filament\Tables;
 use App\Models\Location;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
-use Filament\Actions\ViewAction;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use App\Models\TemperatureHumidity;
@@ -18,17 +17,22 @@ use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
+use Filament\Navigation\NavigationItem;
 use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Columns\Layout\Stack;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Tables\Actions\BulkActionGroup;
 use Illuminate\Database\Eloquent\Collection;
 use Filament\Infolists\Components\Section as InfoSection;
 use App\Filament\Resources\TemperatureHumidityResource\Pages;
@@ -37,9 +41,9 @@ class TemperatureHumidityResource extends Resource
 {
     protected static ?string $model = TemperatureHumidity::class;
     protected static ?int $navigationSort = 0;
-
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
-
+    protected static ?string $navigationLabel = 'All';
+    protected static ?string $navigationGroup = 'Temperature & Humidity';
+    protected static bool $shouldRegisterNavigation = false;
     public static function canCreate(): bool
     {
         return !TemperatureHumidity::whereDate('created_at', Carbon::today())->exists();
@@ -191,7 +195,7 @@ class TemperatureHumidityResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_reviewed', false)->orWhere('is_acknowledged', false))
             ->columns([
                 TextColumn::make('date')
                     ->label('Date')
@@ -255,8 +259,8 @@ class TemperatureHumidityResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
                 Action::make('is_reviewed')
                     ->label('Mark as Reviewed')
                     ->visible(fn () => Auth::user()->hasRole(['Supply Chain Manager']))
@@ -293,10 +297,10 @@ class TemperatureHumidityResource extends Resource
                     ->requiresConfirmation()
                     ->color('info')
                     ->icon('heroicon-o-check'),
-                Tables\Actions\DeleteAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
+                BulkActionGroup::make([
                     BulkAction::make('is_reviewed')
                     ->label('Mark as Reviewed')
                     ->icon('heroicon-o-check-badge')
@@ -351,10 +355,10 @@ class TemperatureHumidityResource extends Resource
                     ->schema([
                         TextEntry::make('location')
                             ->label('Location')
-                            ->formatStateUsing(fn ($record) => $record->location.' / '.$record->serial_no),
-                        TextEntry::make('observed_temperature_start')
+                            ->formatStateUsing(fn ($record) => $record->location->location_name.' / '.$record->location->serial_number),
+                        TextEntry::make('location.temperature_start')
                             ->label('Storage Temperature Standards')
-                            ->formatStateUsing(fn ($record) => $record->observed_temperature_start.'°C to '.$record->observed_temperature_end.'°C'),
+                            ->formatStateUsing(fn ($record) => $record->location->temperature_start.'°C to '.$record->location->temperature_end.'°C'),
                     ]),
                 InfoSection::make('Time Range')
                     ->columns(2)
@@ -424,10 +428,32 @@ class TemperatureHumidityResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTemperatureHumidities::route('/'),
+            'index' => Pages\ListTemperatureHumidities::route('/all'),
             'create' => Pages\CreateTemperatureHumidity::route('/create'),
             'edit' => Pages\EditTemperatureHumidity::route('/{record}/edit'),
             'view' => Pages\ViewTemperatureHumidity::route('/view/{record}'),
+            'reviewed' => Pages\ReviewedTempHumidity::route('/reviewed'),
+            'acknowledged' => Pages\AcknowledgedTemperatureHumidity::route('/acknowledged'),
+        ];
+    }
+
+    public static function getNavigationItems(): array
+    {
+        return [
+            NavigationItem::make()
+                ->label('All')
+                ->url(fn()=>TemperatureHumidityResource::getUrl('index'))
+                ->isActiveWhen(fn() => !request()->routeIs('filament.dashboard.resources.temperature-humidities.reviewed'))
+                ->group('Temperature & Humidity')
+                ->sort(0),
+            NavigationItem::make()
+                ->label('Reviewed')
+                ->isActiveWhen(fn()=> request()->routeIs('filament.dashboard.resources.temperature-humidities.reviewed'))
+                ->sort(1),
+            NavigationItem::make()
+                ->label('Acknowledged')
+                ->isActiveWhen(fn()=> request()->routeIs('filament.dashboard.resources.temperature-humidities.acknowledged'))
+                ->sort(1),
         ];
     }
 }
