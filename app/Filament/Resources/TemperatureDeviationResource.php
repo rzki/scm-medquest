@@ -34,8 +34,8 @@ class TemperatureDeviationResource extends Resource
 {
     protected static ?string $model = TemperatureDeviation::class;
     protected static ?int $navigationSort = 1;
-
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static ?string $navigationGroup = 'Temperature Deviation';
+    protected static bool $shouldRegisterNavigation = false;
 
     public static function form(Form $form): Form
     {
@@ -125,7 +125,7 @@ class TemperatureDeviationResource extends Resource
                     TextArea::make('deviation_reason')
                         ->label('Reason for deviation')
                         ->required(Auth::user()->hasRole('Staff')),
-                ]),
+                ])->disabled(fn() => !Auth::user()->hasRole('Supply Chain Officer')),
                 Section::make('Length of Temperature Deviation & Risk Analysis (Filled by QA Staff / Supervisor)')
                 ->columns(2)
                 ->schema([
@@ -193,6 +193,8 @@ class TemperatureDeviationResource extends Resource
             'index' => Pages\ListTemperatureDeviations::route('/'),
             'create' => Pages\CreateTemperatureDeviation::route('/create'),
             'edit' => Pages\EditTemperatureDeviation::route('/{record}/edit'),
+            'reviewed' => Pages\ReviewedTemperatureDeviation::route('/reviewed'),
+            'acknowledged' => Pages\AcknowledgedTemperatureDeviation::route('/acknowledged'),
         ];
     }
 }
