@@ -22,11 +22,10 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
     protected static ?int $navigationSort = 4;
-
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationGroup = 'Admin Settings';
     public static function canViewAny(): bool
     {
-        return Auth::user()->hasRole('Super Admin');
+        return Auth::user()->hasRole(['Super Admin', 'Admin']);
     }
 
     public static function form(Form $form): Form
