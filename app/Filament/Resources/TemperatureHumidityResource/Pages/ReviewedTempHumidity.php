@@ -98,11 +98,7 @@ class ReviewedTempHumidity extends ListRecords
                 ViewAction::make(),
                 Action::make('is_reviewed')
                     ->label('Mark as Reviewed')
-                    ->visible(function (TemperatureHumidity $record) {
-                        $isReviewed = $record->is_reviewed == false;
-                        $admin = Auth::user()->hasRole(['Super Admin', 'Supply Chain Manager']);
-                        return $isReviewed && $admin;
-                    })
+                    ->visible(fn() => Auth::user()->hasRole(['Supply Chain Manager']))
                     ->action(function (TemperatureHumidity $record) {
                         $record->update([
                             'is_reviewed' => true,
@@ -126,26 +122,34 @@ class ReviewedTempHumidity extends ListRecords
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(function (TemperatureHumidity $record) {
-                        $isReviewed = $record->is_reviewed == true;
-                        $admin = Auth::user()->hasRole(['Super Admin', 'Supply Chain Manager']);
-                        return !$isReviewed && $admin;
-                    })
+                    ->visible(fn() => Auth::user()->hasRole(['Supply Chain Manager']))
                     ->action(function (Collection $records) {
+                        $alreadyReviewed = $records->every(fn ($record) => $record->is_reviewed);
+
+                        if ($alreadyReviewed) {
+                            Notification::make()
+                                ->title('All selected records are already reviewed.')
+                                ->warning()
+                                ->send();
+
+                            return;
+                        }
                         foreach ($records as $record) {
-                            $record->is_reviewed = true;
-                            $record->reviewed_by = auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
-                            $record->reviewed_at = now('Asia/Jakarta');
-                            $record->save();
+                            if (! $record->is_reviewed) {
+                                $record->is_reviewed = true;
+                                $record->reviewed_by = auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
+                                $record->reviewed_at = now('Asia/Jakarta');
+                                $record->save();
+                            }
                         }
                         
-                    Notification::make()
-                        ->title('Success!')
-                        ->body('Selected data marked as reviewed successfully')
-                        ->success()
-                        ->send();
-                    }),
-                    DeleteBulkAction::make(),
+                        Notification::make()
+                            ->title('Success!')
+                            ->body('Selected data marked as reviewed successfully')
+                            ->success()
+                            ->send();
+                        }),
+
                 ]),
             ]);
     }

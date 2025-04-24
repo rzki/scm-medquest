@@ -99,7 +99,7 @@ class AcknowledgedTemperatureHumidity extends listRecords
                     ->label('Mark as Acknowledged')
                     ->visible(function (TemperatureHumidity $record) {
                         $isAcknowledged = $record->is_acknowledged == false;
-                        $admin = Auth::user()->hasRole(['Super Admin', 'QA Manager']);
+                        $admin = Auth::user()->hasRole(['QA Manager']);
                         return $isAcknowledged && $admin;
                     })
                     ->action(function (TemperatureHumidity $record) {
@@ -125,26 +125,33 @@ class AcknowledgedTemperatureHumidity extends listRecords
                     ->icon('heroicon-o-check-badge')
                     ->color('info')
                     ->requiresConfirmation()
-                    ->visible(function (TemperatureHumidity $record) {
-                        $isAcknowledged = $record->is_acknowledged == true;
-                        $admin = Auth::user()->hasRole(['Super Admin', 'QA Manager']);
-                        return !$isAcknowledged && $admin;
-                    })
+                    ->visible(fn() => Auth::user()->hasRole(['QA Manager']))
                     ->action(function (Collection $records) {
+                        $alreadyAcknowledged = $records->every(fn ($record) => $record->is_acknowledged);
+
+                        if ($alreadyAcknowledged) {
+                            Notification::make()
+                                ->title('All selected records are already acknowledged.')
+                                ->warning()
+                                ->send();
+
+                            return;
+                        }
                         foreach ($records as $record) {
-                            $record->is_acknowledged = true;
-                            $record->acknowledged_by = auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
-                            $record->acknowledged_at = now('Asia/Jakarta');
-                            $record->save();
+                            if (! $record->is_acknowledged); {
+                                $record->is_acknowledged = true;
+                                $record->acknowledged_by = auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
+                                $record->acknowledged_at = now('Asia/Jakarta');
+                                $record->save();
+                            }
                         }
                         
-                    Notification::make()
-                        ->title('Success!')
-                        ->body('Selected data marked as reviewed successfully')
-                        ->success()
-                        ->send();
-                    }),
-                    DeleteBulkAction::make(),
+                        Notification::make()
+                            ->title('Success!')
+                            ->body('Selected data marked as acknowledged successfully')
+                            ->success()
+                            ->send();
+                        }),
                 ]),
             ]);
     }
