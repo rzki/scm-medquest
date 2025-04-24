@@ -44,10 +44,10 @@ class TemperatureHumidityResource extends Resource
     protected static ?string $navigationLabel = 'All';
     protected static ?string $navigationGroup = 'Temperature & Humidity';
     protected static bool $shouldRegisterNavigation = false;
-    public static function canCreate(): bool
-    {
-        return !TemperatureHumidity::whereDate('created_at', Carbon::today())->exists();
-    }
+    // public static function canCreate(): bool
+    // {
+    //     return !TemperatureHumidity::whereDate('created_at', Carbon::today())->exists();
+    // }
     public static function form(Form $form): Form
     {
         return $form
@@ -99,6 +99,18 @@ class TemperatureHumidityResource extends Resource
                                 }
                             })
                             ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $exists = TemperatureHumidity::where('location_id', $state)
+                                    ->whereDate('date', Carbon::today())
+                                    ->exists();
+
+                                if ($exists) {
+                                    Notification::make()
+                                        ->title('⚠️ A record for this location already exists today.')
+                                        ->danger()
+                                        ->send();
+                                }
+                            })
                             ->required(),
                         TextInput::make('serial_number')
                             ->label('Serial Number')
