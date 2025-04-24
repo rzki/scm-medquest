@@ -90,6 +90,7 @@ class CreateTemperatureHumidity extends CreateRecord
             if (!is_null($tempValue) && ($tempValue < $minTemp || $tempValue > $maxTemp)) {
                 $deviationData[] = [
                     'temperature_id' => $temperatureHumidity->id,
+                    'location_id' => $temperatureHumidity->location_id,
                     'time' => $inputtedTime,
                     'temperature_deviation' => $tempValue,
                 ];
