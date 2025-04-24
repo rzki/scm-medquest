@@ -2,17 +2,22 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\LocationResource\Pages;
-use App\Filament\Resources\LocationResource\RelationManagers;
-use App\Models\Location;
 use Filament\Forms;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use App\Models\Location;
+use Filament\Forms\Form;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use App\Filament\Resources\LocationResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\LocationResource\RelationManagers;
 
 class LocationResource extends Resource
 {
@@ -38,13 +43,11 @@ class LocationResource extends Resource
                     ->label('Temperature Start')
                     ->required()
                     ->numeric()
-                    ->maxLength(255)
                     ->placeholder('Enter temperature start'),
                 TextInput::make('temperature_end')
                     ->label('Temperature End')
                     ->required()
                     ->numeric()
-                    ->maxLength(255)
                     ->placeholder('Enter temperature end'),
             ]);
     }
@@ -52,18 +55,28 @@ class LocationResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('created_at'))
             ->columns([
-                //
+                TextColumn::make('location_name')
+                    ->label('Location Name')
+                    ->searchable(),
+                TextColumn::make('serial_number')
+                    ->label('Serial Number')
+                    ->searchable(),
+                TextColumn::make('temperature_start')
+                    ->label('Temperature Range')
+                    ->formatStateUsing(fn ($record) => $record->temperature_start. '°C to '. $record->temperature_end. '°C'),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                EditAction::make(),
+                DeleteAction::make()
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
