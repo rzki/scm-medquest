@@ -34,6 +34,7 @@ use Filament\Forms\Components\CheckboxList;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Tables\Actions\BulkActionGroup;
 use Illuminate\Database\Eloquent\Collection;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Infolists\Components\Section as InfoSection;
 use App\Filament\Resources\TemperatureHumidityResource\Pages;
 
@@ -216,6 +217,11 @@ class TemperatureHumidityResource extends Resource
                     ->label('Period')
                     ->formatStateUsing(fn ($record) => strtoupper(Carbon::parse($record->period)->format('M Y')))
                     ->searchable(),
+                TextColumn::make('location.location_name')
+                    ->label('Location')
+                    ->getStateUsing(function ($record) {
+                        return $record->location->location_name . ' / ' . $record->location->serial_number;
+                    }),
                 TextColumn::make('0800_data')
                     ->label('08:00')
                     ->getStateUsing(function ($record) {
@@ -271,11 +277,17 @@ class TemperatureHumidityResource extends Resource
                 //
             ])
             ->actions([
-                ViewAction::make(),
-                EditAction::make(),
+                ViewAction::make()
+                ->visible(fn() => Auth::user()->hasRole(['Supply Chain Officer'])),
+                EditAction::make()
+                ->visible(fn() => Auth::user()->hasRole(['Supply Chain Officer'])),
                 Action::make('is_reviewed')
                     ->label('Mark as Reviewed')
-                    ->visible(fn () => Auth::user()->hasRole(['Supply Chain Manager']))
+                    ->visible(function (TemperatureHumidity $record) {
+                        $isReviewed = $record->is_reviewed == false;
+                        $admin = Auth::user()->hasRole(['Supply Chain Manager']);
+                        return $isReviewed && $admin;
+                    })
                     ->action(function (Model $record) {
                         $record->update([
                             'is_reviewed' => true,
@@ -284,7 +296,7 @@ class TemperatureHumidityResource extends Resource
                         ]);
                     Notification::make()
                         ->title('Success!')
-                        ->body('Marked as reviewed successfully by Supply Chain Manager.')
+                        ->body('Marked as reviewed successfully')
                         ->success()
                         ->send();
                     })
@@ -293,7 +305,11 @@ class TemperatureHumidityResource extends Resource
                     ->icon('heroicon-o-check'),
                 Action::make('is_acknowledged')
                     ->label('Mark as Acknowledged')
-                    ->visible(fn () => Auth::user()->hasRole(['QA Manager']))
+                    ->visible(function (TemperatureHumidity $record) {
+                        $isAcknowledged = $record->is_acknowledged == false;
+                        $admin = Auth::user()->hasRole(['QA Manager']);
+                        return $isAcknowledged && $admin;
+                    })
                     ->action(function (Model $record) {
                         $record->update([
                             'is_acknowledged' => true,
@@ -302,14 +318,15 @@ class TemperatureHumidityResource extends Resource
                         ]);
                     Notification::make()
                         ->title('Success!')
-                        ->body('Marked as acknowledged successfully by QA Manager.')
+                        ->body('Marked as acknowledged successfully')
                         ->success()
                         ->send();
                     })
                     ->requiresConfirmation()
                     ->color('info')
                     ->icon('heroicon-o-check'),
-                DeleteAction::make(),
+                DeleteAction::make()
+                ->visible(fn() => Auth::user()->hasRole(['Supply Chain Officer'])),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
@@ -318,22 +335,68 @@ class TemperatureHumidityResource extends Resource
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn () => Auth::user()->hasRole(['Supply Chain Manager']))
+                    ->deselectRecordsAfterCompletion()
+                    ->visible(fn() => Auth::user()->hasRole(['Supply Chain Manager']))
                     ->action(function (Collection $records) {
+                        $alreadyReviewed = $records->every(fn ($record) => $record->is_reviewed);
+
+                        if ($alreadyReviewed) {
+                            Notification::make()
+                                ->title('All selected records are already reviewed.')
+                                ->warning()
+                                ->send();
+
+                            return;
+                        }
                         foreach ($records as $record) {
-                            $record->is_reviewed = true;
-                            $record->reviewed_by = auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
-                            $record->reviewed_at = now('Asia/Jakarta');
-                            $record->save();
+                            if (! $record->is_reviewed) {
+                                $record->is_reviewed = true;
+                                $record->reviewed_by = auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
+                                $record->reviewed_at = now('Asia/Jakarta');
+                                $record->save();
+                            }
                         }
                         
-                    Notification::make()
-                        ->title('Success!')
-                        ->body('Selected data marked as reviewed successfully')
-                        ->success()
-                        ->send();
+                        Notification::make()
+                            ->title('Success!')
+                            ->body('Selected data marked as reviewed successfully')
+                            ->success()
+                            ->send();
                     }),
-                    Tables\Actions\DeleteBulkAction::make(),
+                    BulkAction::make('is_acknowledged')
+                        ->label('Mark as Acknowledged')
+                        ->icon('heroicon-o-check-badge')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->deselectRecordsAfterCompletion()
+                        ->visible(fn() => Auth::user()->hasRole(['QA Manager']))
+                        ->action(function (Collection $records) {
+                            $alreadyAcknowledged = $records->every(fn ($record) => $record->is_acknowledged);
+
+                            if ($alreadyAcknowledged) {
+                                Notification::make()
+                                    ->title('All selected records are already acknowledged.')
+                                    ->warning()
+                                    ->send();
+
+                                return;
+                            }
+                            foreach ($records as $record) {
+                                if (! $record->is_acknowledged); {
+                                    $record->is_acknowledged = true;
+                                    $record->acknowledged_by = auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
+                                    $record->acknowledged_at = now('Asia/Jakarta');
+                                    $record->save();
+                                }
+                            }
+                            
+                            Notification::make()
+                                ->title('Success!')
+                                ->body('Selected data marked as acknowledged successfully')
+                                ->success()
+                                ->send();
+                        }),
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
