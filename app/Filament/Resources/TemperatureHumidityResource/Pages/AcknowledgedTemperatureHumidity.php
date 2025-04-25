@@ -30,7 +30,8 @@ class AcknowledgedTemperatureHumidity extends listRecords
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_acknowledged', false))
+            ->emptyStateHeading('No pending acknowledged data is found')
             ->columns([
                 TextColumn::make('date')
                     ->label('Date')

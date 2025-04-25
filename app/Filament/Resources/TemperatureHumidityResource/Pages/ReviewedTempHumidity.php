@@ -31,7 +31,8 @@ class ReviewedTempHumidity extends ListRecords
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_reviewed', false))
+            ->emptyStateHeading('No pending review data is found')
             ->columns([
                 TextColumn::make('date')
                     ->label('Date')
