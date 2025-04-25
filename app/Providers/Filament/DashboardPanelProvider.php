@@ -6,6 +6,7 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\Widgets;
 use Filament\PanelProvider;
+use Filament\Navigation\MenuItem;
 use Filament\Support\Colors\Color;
 use App\Filament\Pages\EditProfile;
 use Illuminate\Support\Facades\Auth;
@@ -42,6 +43,12 @@ class DashboardPanelProvider extends PanelProvider
             ])
             ->colors([
                 'primary' => Color::Amber,
+            ])
+            ->userMenuItems([
+                'profile' => MenuItem::make()
+                    ->label(fn() => Auth::user()->name)
+                    ->url(fn() => EditProfile::getUrl())
+                    ->icon('heroicon-o-user-circle'),
             ])
             ->navigationItems([
                 // Temperature & Humidity
