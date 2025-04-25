@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\listRecords;
 use Filament\Tables\Actions\DeleteAction;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\BulkActionGroup;
 use Illuminate\Database\Eloquent\Collection;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -31,6 +32,8 @@ class AcknowledgedTemperatureDeviation extends listRecords
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_acknowledged', false))
+            ->emptyStateHeading('No pending acknowledge data is found')
             ->columns([
                 TextColumn::make('date')
                     ->label('Date (Tanggal)')

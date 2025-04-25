@@ -7,6 +7,7 @@ use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
 use App\Models\TemperatureDeviation;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
@@ -31,6 +32,8 @@ class ReviewedTemperatureDeviation extends ListRecords
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_reviewed', false))
+            ->emptyStateHeading('No pending review data is found')
             ->columns([
                 TextColumn::make('date')
                     ->label('Date (Tanggal)')
