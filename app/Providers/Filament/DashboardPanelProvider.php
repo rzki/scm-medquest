@@ -38,6 +38,7 @@ class DashboardPanelProvider extends PanelProvider
             ->login()
             ->profile(EditProfile::class)
             ->spa()
+            ->databaseNotifications()
             ->plugins([
                 FilamentSpatieRolesPermissionsPlugin::make()
             ])
