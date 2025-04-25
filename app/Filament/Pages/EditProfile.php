@@ -12,6 +12,14 @@ class EditProfile extends BaseEditProfile
     {
         return 'Edit Profile';
     }
+    public function getRedirectUrl(): string
+    {
+        return '/';
+    }
+    public function getSavedNotificationTitle(): string
+    {
+        return 'Profile updated successfully';
+    }
     public function form(Form $form): Form
     {
         return $form
