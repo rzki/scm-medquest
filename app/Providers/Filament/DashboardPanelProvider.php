@@ -7,6 +7,7 @@ use Filament\Panel;
 use Filament\Widgets;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use App\Filament\Pages\EditProfile;
 use Illuminate\Support\Facades\Auth;
 use Filament\Navigation\NavigationItem;
 use Filament\Navigation\NavigationGroup;
@@ -34,6 +35,7 @@ class DashboardPanelProvider extends PanelProvider
             ->id('dashboard')
             ->path('/')
             ->login()
+            ->profile(EditProfile::class)
             ->spa()
             ->plugins([
                 FilamentSpatieRolesPermissionsPlugin::make()
