@@ -3,8 +3,6 @@
 namespace App\Filament\Resources;
 
 use Carbon\Carbon;
-use Filament\Forms;
-use Filament\Tables;
 use App\Models\Location;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
@@ -12,7 +10,6 @@ use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use App\Models\TemperatureHumidity;
 use Filament\Tables\Actions\Action;
-use Filament\Forms\Components\Radio;
 use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
@@ -25,16 +22,18 @@ use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\IconPosition;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Columns\Layout\Stack;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Forms\Components\CheckboxList;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Tables\Actions\BulkActionGroup;
 use Illuminate\Database\Eloquent\Collection;
 use Filament\Tables\Actions\DeleteBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
 use Filament\Infolists\Components\Section as InfoSection;
 use App\Filament\Resources\TemperatureHumidityResource\Pages;
 
@@ -249,7 +248,6 @@ class TemperatureHumidityResource extends Resource
                         $pic1400 = $record->pic_1400 ?? '-';
                         return "Time: $time1400 <br> Temp: $temp1400 °C <br> Humidity: $rh1400% <br> PIC: $pic1400";
                     })->html(),
-                    
                 TextColumn::make('1700_data')
                     ->label('17:00')
                     ->getStateUsing(function ($record) {
@@ -271,10 +269,24 @@ class TemperatureHumidityResource extends Resource
                     ->getStateUsing(function ($record){
                         return $record->acknowledged_by ? $record->acknowledged_by : '-';
                     }),
-                
             ])
             ->filters([
                 //
+            ])
+            ->headerActions([
+                ActionGroup::make([
+                    ExportAction::make()->exports([
+                        // This Month
+                        ExcelExport::make()
+                            ->fromTable()
+                            ->modifyQueryUsing(fn($query) => $query->where('date', now()->month))
+                    ])
+                ])
+                ->button()
+                ->icon('heroicon-o-chevron-down')
+                ->iconPosition(IconPosition::After)
+                ->color('info')
+                ->label('Export')
             ])
             ->actions([
                 ViewAction::make()
