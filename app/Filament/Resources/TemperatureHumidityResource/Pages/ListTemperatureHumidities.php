@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\TemperatureHumidityResource\Pages;
 
-use App\Filament\Resources\TemperatureHumidityResource;
 use Filament\Actions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\TemperatureHumidityResource;
 
 class ListTemperatureHumidities extends ListRecords
 {
@@ -17,7 +18,9 @@ class ListTemperatureHumidities extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make()
+            ->label('New Temperature & Humidity')
+            ->color('success'),
         ];
     }
 }
