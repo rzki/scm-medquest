@@ -43,7 +43,7 @@ class CreateTemperatureHumidity extends CreateRecord
 
         // ✅ Automatically insert signature and date into the right PIC field
         $now = Carbon::now()->timezone('Asia/Jakarta');
-        $signature = auth()->user()->id;
+        $signature = auth()->user()->initial.' '.strtoupper(now('Asia/Jakarta')->format('d M Y'));
 
         $timeWindows = [
             'pic_0800' => ['start' => '08:00', 'end' => '10:59'],

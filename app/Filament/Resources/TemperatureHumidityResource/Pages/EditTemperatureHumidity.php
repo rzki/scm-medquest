@@ -29,7 +29,7 @@ class EditTemperatureHumidity extends EditRecord
         $maxTemp = $location->temperature_end;
         // ✅ Auto-fill signature into current time window's PIC field
         $now = Carbon::now()->timezone('Asia/Jakarta');
-        $signature = auth()->user()->id;
+        $signature = auth()->user()->initial.' '.strtoupper(now('Asia/Jakarta')->format('d M Y'));
 
         $timeWindows = [
             'pic_0800' => ['start' => '08:00', 'end' => '10:59'],
