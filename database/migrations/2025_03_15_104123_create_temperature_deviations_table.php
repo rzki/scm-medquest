@@ -22,14 +22,14 @@ return new class extends Migration
             $table->decimal('temperature_deviation', 5, 2);
             $table->integer('length_temperature_deviation')->nullable();
             $table->string('deviation_reason')->nullable();
-            $table->foreignId('pic')->constrained('users');
+            $table->string('pic');
             $table->string('risk_analysis')->nullable();
             $table->string('analyzer_pic')->nullable();
             $table->boolean('is_reviewed')->default(false);
-            $table->foreignId('reviewed_by')->nullable()->constrained('users');
+            $table->string('reviewed_by')->nullable();
             $table->dateTime('reviewed_at')->nullable();
             $table->boolean('is_acknowledged')->default(false);
-            $table->foreignId('acknowledged_by')->nullable()->constrained('users');
+            $table->string('acknowledged_by')->nullable();
             $table->dateTime('acknowledged_at')->nullable();
             $table->timestamps();
         });

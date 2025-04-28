@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Location;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
@@ -24,6 +25,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Enums\IconPosition;
 use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
 use Filament\Tables\Actions\DeleteAction;
@@ -227,7 +229,7 @@ class TemperatureHumidityResource extends Resource
                         $temp0800 = $record->temp_0800 ?? '-';
                         $time0800 = $record->time_0800 ? Carbon::parse($record->time_0800)->format('H:i') : '-';
                         $rh0800 = $record->rh_0800 ?? '-';
-                        $pic0800 = $record->pic_0800 ?? '-';
+                        $pic0800 = $record->pic_0800 ? User::find($record->pic_0800)->initial.' '.strtoupper(Carbon::parse($record->date)->format('d M Y')) : '-';
                         return "Time: $time0800 <br> Temp: $temp0800 °C <br> Humidity: $rh0800% <br> PIC: $pic0800";
                     })->html(),
                 TextColumn::make('1100_data')
@@ -236,7 +238,7 @@ class TemperatureHumidityResource extends Resource
                         $temp1100 = $record->temp_1100 ?? '-';
                         $time1100 = $record->time_1100 ? Carbon::parse($record->time_1100)->format('H:i') : '-';
                         $rh1100 = $record->rh_1100 ?? '-';
-                        $pic1100 = $record->pic_1100 ?? '-';
+                        $pic1100 = $record->pic_1100 ? User::find($record->pic_1100)->initial.' '.strtoupper(Carbon::parse($record->date)->format('d M Y')) : '-';
                         return "Time: $time1100 <br> Temp: $temp1100 °C <br> Humidity: $rh1100% <br> PIC: $pic1100";
                     })->html(),
                 TextColumn::make('1400_data')
@@ -245,7 +247,7 @@ class TemperatureHumidityResource extends Resource
                         $temp1400 = $record->temp_1400 ?? '-';
                         $time1400 = $record->time_1400 ? Carbon::parse($record->time_1400)->format('H:i') : '-';
                         $rh1400 = $record->rh_1400 ?? '-';
-                        $pic1400 = $record->pic_1400 ?? '-';
+                        $pic1400 = $record->pic->initial.' '.strtoupper(Carbon::parse($record->date)->format('d M Y')) ?? '-';
                         return "Time: $time1400 <br> Temp: $temp1400 °C <br> Humidity: $rh1400% <br> PIC: $pic1400";
                     })->html(),
                 TextColumn::make('1700_data')
@@ -254,7 +256,7 @@ class TemperatureHumidityResource extends Resource
                         $temp1700 = $record->temp_1700 ?? '-';
                         $time1700 = $record->time_1700 ? Carbon::parse($record->time_1700)->format('H:i') : '-';
                         $rh1700 = $record->rh_1700 ?? '-';
-                        $pic1700 = $record->pic_1700 ?? '-';
+                        $pic1700 = $record->pic->initial.' '.strtoupper(Carbon::parse($record->date)->format('d M Y')) ?? '-';
                         return "Time: $time1700 <br> Temp: $temp1700 °C <br> Humidity: $rh1700% <br> PIC: $pic1700";
                     })->html(),
                 TextColumn::make('reviewed_by')
@@ -275,11 +277,21 @@ class TemperatureHumidityResource extends Resource
             ])
             ->headerActions([
                 ActionGroup::make([
-                    ExportAction::make()->exports([
-                        // This Month
-                        ExcelExport::make()
-                            ->fromTable()
-                            ->modifyQueryUsing(fn($query) => $query->where('date', now()->month))
+                    ExportAction::make('temp_humidity_export')->exports([
+                        ExcelExport::make()->withColumns([
+                            Column::make('date')->heading('Date')
+                                ->formatStateUsing(fn ($record) => Carbon::parse($record->date)->format('d')),
+                            Column::make('period')->heading('Period')
+                                ->formatStateUsing(fn ($record) => strtoupper(Carbon::parse($record->period)->format('M Y'))),
+                            Column::make('time_0800')->heading('Time (0800)')
+                                ->formatStateUsing(fn ($record) => $record->time_0800 ? Carbon::parse($record->time_0800)->format('H:i') : '-'),
+                            Column::make('temp_0800')->heading('Temperature (°C) (0800)')
+                                ->formatStateUsing(fn ($record) => $record->temp_0800.' °C' ?? '-'),
+                            Column::make('rh_0800')->heading('RH (%) (0800)')
+                                ->formatStateUsing(fn ($record) => $record->rh_0800.'%' ?? '-'),
+                            Column::make('pic_0800')->heading('P.I.C')
+                                ->formatStateUsing(fn ($record) => $record->pic_0800 ?? '-'),
+                            ])
                     ])
                 ])
                 ->button()
