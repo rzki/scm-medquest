@@ -3,10 +3,8 @@
 namespace App\Filament\Resources\TemperatureHumidityResource\Pages;
 
 use Carbon\Carbon;
-use Filament\Actions;
 use App\Models\Location;
 use Illuminate\Support\Str;
-use App\Models\TemperatureDeviation;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use App\Filament\Resources\TemperatureHumidityResource;
@@ -45,7 +43,7 @@ class CreateTemperatureHumidity extends CreateRecord
 
         // ✅ Automatically insert signature and date into the right PIC field
         $now = Carbon::now()->timezone('Asia/Jakarta');
-        $signature = auth()->user()->initial . ' ' . strtoupper($now->format('d M Y'));
+        $signature = auth()->user()->id;
 
         $timeWindows = [
             'pic_0800' => ['start' => '08:00', 'end' => '10:59'],
@@ -119,6 +117,11 @@ class CreateTemperatureHumidity extends CreateRecord
     }
     protected function getCreatedNotification(): ?Notification
     {
-        return Notification::make()->success()->body('Temperature & Humidity log successfully created!');
+        $recipient = auth()->user();
+        return Notification::make()
+            ->success()
+            ->title('Temperature & Humidity successfully created')
+            ->body('The Temperature & Humidity has been created successfully.')
+            ->sendToDatabase($recipient);
     }
 }
