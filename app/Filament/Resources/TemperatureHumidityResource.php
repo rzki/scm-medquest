@@ -145,7 +145,9 @@ class TemperatureHumidityResource extends Resource
                                     ->suffix('°C'),
                                 TextInput::make('rh_0800')
                                     ->label('Humidity')
-                                    ->suffix('%'),
+                                    ->suffix('%')
+                                    ->numeric()
+                                    ->maxValue(100),
                             ])
                             ->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '08:00' || 
@@ -164,7 +166,9 @@ class TemperatureHumidityResource extends Resource
                                     ->suffix('°C'),
                                 TextInput::make('rh_1100')
                                     ->label('Humidity')
-                                    ->suffix('%'),
+                                    ->suffix('%')
+                                    ->numeric()
+                                    ->maxValue(100),
                             ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '11:31' || 
                                     Carbon::now('Asia/Jakarta')->format('H:i') >= '14:31'
@@ -182,7 +186,9 @@ class TemperatureHumidityResource extends Resource
                                     ->suffix('°C'),
                                 TextInput::make('rh_1400')
                                     ->label('Humidity')
-                                    ->suffix('%'),
+                                    ->suffix('%')
+                                    ->numeric()
+                                    ->maxValue(100),
                             ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '14:31' || 
                                     Carbon::now('Asia/Jakarta')->format('H:i') >= '17:30'
@@ -200,7 +206,9 @@ class TemperatureHumidityResource extends Resource
                                     ->suffix('°C'),
                                 TextInput::make('rh_1700')
                                     ->label('Humidity')
-                                    ->suffix('%'),
+                                    ->suffix('%')
+                                    ->numeric()
+                                    ->maxValue(100),
                             ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '17:31' || 
                                     Carbon::now('Asia/Jakarta')->format('H:i') >= '19:30'
