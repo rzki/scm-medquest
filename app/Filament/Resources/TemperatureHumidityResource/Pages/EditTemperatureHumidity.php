@@ -12,6 +12,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use App\Filament\Resources\TemperatureHumidityResource;
 use App\Filament\Resources\TemperatureDeviationResource;
+use Filament\Notifications\Actions\Action as NotificationAction;
 
 class EditTemperatureHumidity extends EditRecord
 {
@@ -32,10 +33,10 @@ class EditTemperatureHumidity extends EditRecord
         $signature = auth()->user()->initial.' '.strtoupper(now('Asia/Jakarta')->format('d M Y'));
 
         $timeWindows = [
-            'pic_0800' => ['start' => '08:00', 'end' => '10:59'],
-            'pic_1100' => ['start' => '11:00', 'end' => '13:59'],
-            'pic_1400' => ['start' => '14:00', 'end' => '16:59'],
-            'pic_1700' => ['start' => '17:00', 'end' => '18:59'],
+            'pic_0800' => ['start' => '08:00', 'end' => '11:30'],
+            'pic_1100' => ['start' => '11:31', 'end' => '14:30'],
+            'pic_1400' => ['start' => '14:31', 'end' => '17:30'],
+            'pic_1700' => ['start' => '17:31', 'end' => '19:30'],
         ];
 
         foreach ($timeWindows as $picField => $window) {
@@ -73,10 +74,10 @@ class EditTemperatureHumidity extends EditRecord
         $now = Carbon::now()->timezone('Asia/Jakarta');
 
         $timeWindows = [
-            'temp_0800' => ['start' => '08:00', 'end' => '10:59', 'time_field' => 'time_0800'],
-            'temp_1100' => ['start' => '11:00', 'end' => '13:59', 'time_field' => 'time_1100'],
-            'temp_1400' => ['start' => '14:00', 'end' => '16:59', 'time_field' => 'time_1400'],
-            'temp_1700' => ['start' => '17:00', 'end' => '18:59', 'time_field' => 'time_1700'],
+            'temp_0800' => ['start' => '08:00', 'end' => '11:30', 'time_field' => 'time_0800'],
+            'temp_1100' => ['start' => '11:31', 'end' => '14:30', 'time_field' => 'time_1100'],
+            'temp_1400' => ['start' => '14:31', 'end' => '17:30', 'time_field' => 'time_1400'],
+            'temp_1700' => ['start' => '17:31', 'end' => '19:30', 'time_field' => 'time_1700'],
         ];
 
         foreach ($timeWindows as $tempField => $window) {
@@ -100,6 +101,22 @@ class EditTemperatureHumidity extends EditRecord
                 break; // Only evaluate the current time window
             }
         }
+        
+
+        $recipient = auth()->user();
+        Notification::make()
+            ->success()
+            ->title('Temperature & Humidity for '. $location->location_name .' updated')
+            ->body('Please check the Temperature & Humidity page for more details.')
+            ->actions([
+                NotificationAction::make('View')
+                    ->url(TemperatureHumidityResource::getUrl('view', ['record' => $record]))
+                    ->icon('heroicon-o-eye')
+                    ->color('success')
+                    ->close()
+                    ->markAsRead()
+            ])
+            ->sendToDatabase($recipient);
     }
     protected function getRedirectUrl(): string
     {

@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Location;
 use Illuminate\Support\Str;
 use Filament\Notifications\Notification;
+use Filament\Notifications\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use App\Filament\Resources\TemperatureHumidityResource;
 use App\Filament\Resources\TemperatureDeviationResource;
@@ -46,10 +47,10 @@ class CreateTemperatureHumidity extends CreateRecord
         $signature = auth()->user()->initial.' '.strtoupper(now('Asia/Jakarta')->format('d M Y'));
 
         $timeWindows = [
-            'pic_0800' => ['start' => '08:00', 'end' => '10:59'],
-            'pic_1100' => ['start' => '11:00', 'end' => '13:59'],
-            'pic_1400' => ['start' => '14:00', 'end' => '16:59'],
-            'pic_1700' => ['start' => '17:00', 'end' => '18:59'],
+            'pic_0800' => ['start' => '08:00', 'end' => '11:30'],
+            'pic_1100' => ['start' => '11:31', 'end' => '14:30'],
+            'pic_1400' => ['start' => '14:31', 'end' => '17:30'],
+            'pic_1700' => ['start' => '17:31', 'end' => '19:30'],
         ];
 
         foreach ($timeWindows as $picField => $window) {
@@ -98,6 +99,21 @@ class CreateTemperatureHumidity extends CreateRecord
         session()->put('deviation_triggered', true);
         session()->put('deviation_data', $deviationData);
         }
+
+        $recipient = auth()->user();
+        Notification::make()
+            ->success()
+            ->title('New Temperature & Humidity for '. $location->location_name .' created')
+            ->body('Please check the Temperature & Humidity page for more details.')
+            ->actions([
+                Action::make('View')
+                    ->url(TemperatureHumidityResource::getUrl('view', ['record' => $temperatureHumidity]))
+                    ->icon('heroicon-o-eye')
+                    ->color('success')
+                    ->markAsRead()
+                    ->close()
+            ])
+            ->sendToDatabase($recipient);
     }
     protected function getRedirectUrl(): string
     {
@@ -117,11 +133,9 @@ class CreateTemperatureHumidity extends CreateRecord
     }
     protected function getCreatedNotification(): ?Notification
     {
-        $recipient = auth()->user();
         return Notification::make()
             ->success()
             ->title('Temperature & Humidity successfully created')
-            ->body('The Temperature & Humidity has been created successfully.')
-            ->sendToDatabase($recipient);
+            ->body('The Temperature & Humidity has been created successfully.');
     }
 }
