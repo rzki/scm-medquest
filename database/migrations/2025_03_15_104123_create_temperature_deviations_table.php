@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('temperature_deviations', function (Blueprint $table) {
             $table->id();
             $table->uuid('temperatureDeviationId')->unique()->nullable();
-            $table->foreignId('temperature_humidity_id')->constrained('temperature_humidities')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('temperature_humidity_id')->nullable()->constrained('temperature_humidities')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('location_id')->constrained('locations')->cascadeOnDelete()->cascadeOnUpdate();
             $table->date('date');
             $table->time('time');
