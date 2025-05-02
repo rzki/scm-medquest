@@ -6,11 +6,13 @@ use Carbon\Carbon;
 use App\Models\Location;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use App\Models\TemperatureHumidity;
 use Filament\Tables\Actions\Action;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
@@ -28,7 +30,9 @@ use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
 use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
+use App\Exports\TemperatureHumidityExport;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Tables\Actions\BulkActionGroup;
 use Illuminate\Database\Eloquent\Collection;
@@ -208,14 +212,15 @@ class TemperatureHumidityResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_reviewed', false)->orWhere('is_acknowledged', false))
+            ->modifyQueryUsing(fn($query) => $query->orderByDesc('date'))
             ->columns([
                 TextColumn::make('date')
                     ->label('Date')
+                    ->formatStateUsing(fn($record) => Carbon::parse($record->date)->format('d'))
                     ->searchable(),
                 TextColumn::make('period')
                     ->label('Period')
-                    ->formatStateUsing(fn ($record) => strtoupper(Carbon::parse($record->period)->format('M Y')))
+                    ->formatStateUsing(fn($record) => strtoupper(Carbon::parse($record->period)->format('M Y')))
                     ->searchable(),
                 TextColumn::make('location.location_name')
                     ->label('Location')
@@ -261,49 +266,79 @@ class TemperatureHumidityResource extends Resource
                 TextColumn::make('reviewed_by')
                     ->label('Reviewed By')
                     ->searchable()
-                    ->getStateUsing(function ($record){
+                    ->getStateUsing(function ($record) {
                         return $record->reviewed_by ? $record->reviewed_by : '-';
                     }),
                 TextColumn::make('acknowledged_by')
                     ->label('Acknowledged By')
                     ->searchable()
-                    ->getStateUsing(function ($record){
+                    ->getStateUsing(function ($record) {
                         return $record->acknowledged_by ? $record->acknowledged_by : '-';
                     }),
             ])
             ->filters([
-                //
+                SelectFilter::make('location_id')
+                    ->label('Location')
+                    ->relationship('location', 'location_name')
+                    ->searchable()
+                    ->preload()
             ])
             ->headerActions([
-                ActionGroup::make([
-                    ExportAction::make('temp_humidity_export')->exports([
-                        ExcelExport::make()->withColumns([
-                            Column::make('date')->heading('Date')
-                                ->formatStateUsing(fn ($record) => Carbon::parse($record->date)->format('d')),
-                            Column::make('period')->heading('Period')
-                                ->formatStateUsing(fn ($record) => strtoupper(Carbon::parse($record->period)->format('M Y'))),
-                            Column::make('time_0800')->heading('Time (0800)')
-                                ->formatStateUsing(fn ($record) => $record->time_0800 ? Carbon::parse($record->time_0800)->format('H:i') : '-'),
-                            Column::make('temp_0800')->heading('Temperature (°C) (0800)')
-                                ->formatStateUsing(fn ($record) => $record->temp_0800.' °C' ?? '-'),
-                            Column::make('rh_0800')->heading('RH (%) (0800)')
-                                ->formatStateUsing(fn ($record) => $record->rh_0800.'%' ?? '-'),
-                            Column::make('pic_0800')->heading('P.I.C')
-                                ->formatStateUsing(fn ($record) => $record->pic_0800 ?? '-'),
+                Action::make('custom_export')
+                    ->label('Export')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->form([
+                        Select::make('location_id')
+                            ->label('Location')
+                            ->options(Location::pluck('location_name', 'id'))
+                            ->searchable()
+                            ->required(),
+
+                        Select::make('month_type')
+                            ->label('Month Type')
+                            ->options([
+                                'this_month' => 'This Month',
+                                'choose' => 'Choose Month',
                             ])
+                            ->default('this_month')
+                            ->reactive(),
+
+                        DatePicker::make('chosen_month')
+                            ->label('Choose Month')
+                            ->displayFormat('F Y')
+                            ->visible(fn ($get) => $get('month_type') === 'choose')
+                            ->required(fn ($get) => $get('month_type') === 'choose'),
                     ])
-                ])
-                ->button()
-                ->icon('heroicon-o-chevron-down')
-                ->iconPosition(IconPosition::After)
-                ->color('info')
-                ->label('Export')
+                    ->action(function (array $data) {
+                        $locationId = $data['location_id'];
+                        $location = Location::find($locationId);
+
+                        $query = TemperatureHumidity::query()->where('location_id', $locationId);
+
+                        if ($data['month_type'] === 'this_month') {
+                            $month = now()->month;
+                            $year = now()->year;
+                        } else {
+                            $chosenMonth = Carbon::parse($data['chosen_month']);
+                            $month = $chosenMonth->month;
+                            $year = $chosenMonth->year;
+                        }
+
+                        $query->whereMonth('period', $month)->whereYear('period', $year);
+
+                        $records = $query->get();
+
+                        $monthName = strtoupper(Carbon::createFromDate($year, $month)->format('M')); // e.g., "April"
+                        $sluggedLocation = strtoupper(Str::slug($location->location_name, '_'));
+                        $filename = "TemperatureHumidity_{$monthName}{$year}_{$sluggedLocation}.xlsx";
+
+                        return Excel::download(new TemperatureHumidityExport($records), $filename);
+                    })
             ])
             ->actions([
-                ViewAction::make()
-                ->visible(fn() => Auth::user()->hasRole(['Supply Chain Officer'])),
+                ViewAction::make(),
                 EditAction::make()
-                ->visible(fn() => Auth::user()->hasRole(['Supply Chain Officer'])),
+                ->visible(fn($record) => $record->date == now()->toDateString()),
                 Action::make('is_reviewed')
                     ->label('Mark as Reviewed')
                     ->visible(function (TemperatureHumidity $record) {
@@ -349,7 +384,7 @@ class TemperatureHumidityResource extends Resource
                     ->color('info')
                     ->icon('heroicon-o-check'),
                 DeleteAction::make()
-                ->visible(fn() => Auth::user()->hasRole(['Supply Chain Officer'])),
+                ->visible(fn($record) => $record->date == now()->toDateString()),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
@@ -462,7 +497,7 @@ class TemperatureHumidityResource extends Resource
                     ->columns(2)
                     ->schema([
                         InfoSection::make('08:00')
-                        ->columns(3)
+                        ->columns(4)
                         ->schema([
                             TextEntry::make('time_0800')
                                 ->label('Time')
@@ -473,9 +508,11 @@ class TemperatureHumidityResource extends Resource
                             TextEntry::make('rh_0800')
                                 ->label('Humidity')
                                 ->formatStateUsing(fn ($record) => $record->rh_0800.'%' ?? '-'),
+                            TextEntry::make('pic_0800')
+                                ->label('PIC')
                         ]),
                         InfoSection::make('11:00')
-                        ->columns(3)
+                        ->columns(4)
                         ->schema([
                             TextEntry::make('time_1100')
                                 ->label('Time')
@@ -486,9 +523,11 @@ class TemperatureHumidityResource extends Resource
                             TextEntry::make('rh_1100')
                                 ->label('Humidity')
                                 ->formatStateUsing(fn ($record) => $record->rh_1100.'%' ?? '-'),
+                            TextEntry::make('pic_1100')
+                                ->label('PIC')
                         ]),
                         InfoSection::make('14:00')
-                        ->columns(3)
+                        ->columns(4)
                         ->schema([
                             TextEntry::make('time_1400')
                                 ->label('Time')
@@ -499,9 +538,11 @@ class TemperatureHumidityResource extends Resource
                             TextEntry::make('rh_1400')
                                 ->label('Humidity')
                                 ->formatStateUsing(fn ($record) => $record->rh_1400.'%' ?? '-'),
+                            TextEntry::make('pic_1400')
+                                ->label('PIC')
                         ]),
                         InfoSection::make('17:00')
-                        ->columns(3)
+                        ->columns(4)
                         ->schema([
                             TextEntry::make('time_1700')
                                 ->label('Time')
@@ -512,6 +553,8 @@ class TemperatureHumidityResource extends Resource
                             TextEntry::make('rh_1700')
                                 ->label('Humidity')
                                 ->formatStateUsing(fn ($record) => $record->rh_1700.'%' ?? '-'),
+                            TextEntry::make('pic_1700')
+                                ->label('PIC')
                         ]),
                     ]),
             ]);
