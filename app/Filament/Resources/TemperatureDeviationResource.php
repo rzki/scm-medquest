@@ -8,6 +8,8 @@ use Filament\Tables;
 use App\Models\Location;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Illuminate\Support\Collection;
 use App\Models\TemperatureHumidity;
@@ -15,6 +17,7 @@ use Filament\Tables\Actions\Action;
 use App\Models\TemperatureDeviation;
 use Filament\Forms\Components\Radio;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
@@ -28,7 +31,9 @@ use Filament\Notifications\Notification;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
 use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
+use App\Exports\TemperatureDeviationExport;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -141,14 +146,20 @@ class TemperatureDeviationResource extends Resource
                     TextArea::make('risk_analysis')
                         ->label('Risk Analysis')
                         ->required(Auth::user()->hasRole(['QA Staff', 'QA Supervisor'])),
-                ])->disabled(fn() => !Auth::user()->hasRole(['QA Staff', 'QA Supervisor'])),
+                ])->disabled(fn() => !Auth::user()->hasAnyRole(['QA Staff', 'QA Supervisor'])),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn($query) => $query->orderByDesc('created_at'))
             ->columns([
+                TextColumn::make('location.location_name')
+                    ->label('Location / Serial Number')
+                    ->sortable()
+                    ->searchable()
+                    ->formatStateUsing(fn($record) => "{$record->location->location_name} / {$record->location->serial_number}"),
                 TextColumn::make('date')
                     ->label('Date (Tanggal)')
                     ->sortable()
@@ -173,7 +184,61 @@ class TemperatureDeviationResource extends Resource
                     ->label('Analyzed by (QA)'),
             ])
             ->filters([
-                //
+                SelectFilter::make('location_id')
+                    ->label('Location')
+                    ->relationship('location', 'location_name')
+                    ->searchable()
+                    ->preload()
+            ])
+            ->headerActions([
+                Action::make('custom_export')
+                    ->label('Export')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->form([
+                        Select::make('location_id')
+                            ->label('Location')
+                            ->options(Location::pluck('location_name', 'id'))
+                            ->searchable()
+                            ->required(),
+
+                        Select::make('month_type')
+                            ->label('Month Type')
+                            ->options([
+                                'this_month' => 'This Month',
+                                'choose' => 'Choose Month',
+                            ])
+                            ->default('this_month')
+                            ->reactive(),
+
+                        DatePicker::make('chosen_month')
+                            ->label('Choose Month')
+                            ->displayFormat('F Y')
+                            ->visible(fn ($get) => $get('month_type') === 'choose')
+                            ->required(fn ($get) => $get('month_type') === 'choose'),
+                    ])
+                    ->action(function (array $data) {
+                        $locationId = $data['location_id'];
+                        $location = Location::find($locationId);
+
+                        $query = TemperatureDeviation::query()->where('location_id', $locationId);
+
+                        if ($data['month_type'] === 'this_month') {
+                            $month = now()->month;
+                            $year = now()->year;
+                        } else {
+                            $chosenMonth = Carbon::parse($data['chosen_month']);
+                            $month = $chosenMonth->month;
+                            $year = $chosenMonth->year;
+                        }
+
+                        $records = $query->get();
+
+                        $monthName = strtoupper(Carbon::createFromDate($year, $month)->format('M')); // e.g., "April"
+                        $sluggedLocation = strtoupper(Str::slug($location->location_name, '_'));
+                        $filename = "TemperatureDeviation_{$monthName}{$year}_{$sluggedLocation}.xlsx";
+
+                        return Excel::download(new TemperatureDeviationExport($records), $filename);
+                    })
             ])
             ->actions([
                 Action::make('is_reviewed')
@@ -270,6 +335,32 @@ class TemperatureDeviationResource extends Resource
             ]);
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Section::make('Date & Time')
+                    ->columns(2)
+                    ->schema([
+                        TextColumn::make('date')
+                            ->label('Date')
+                            ->date('d/m/Y'),
+                        TextColumn::make('time')
+                            ->label('Time')
+                            ->time('H:i'),
+                    ]),
+                Section::make('Location & Storage Temperature Standards')
+                    ->columns(3)
+                    ->schema([
+                        TextColumn::make('location.location_name')
+                            ->label('Location'),
+                        TextColumn::make('location.serial_number')
+                            ->label('Serial Number'),
+                        TextColumn::make('location.temperature_start')
+                            ->label('Storage Temperature Standards'),
+                    ]),
+            ]);
+    }
     public static function getRelations(): array
     {
         return [
