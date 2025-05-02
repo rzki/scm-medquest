@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Filament\Enums\ThemeMode;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\Widgets;
@@ -38,12 +39,16 @@ class DashboardPanelProvider extends PanelProvider
             ->login()
             ->profile(EditProfile::class)
             ->spa()
+            ->brandLogo(asset('assets/images/LOGO-MEDQUEST-HD.png'))
+            ->brandLogoHeight('2rem')
+            ->defaultThemeMode(ThemeMode::Light)
+            ->favicon(asset('assets/images/Medquest-Favicon.png'))
             ->databaseNotifications()
             ->plugins([
                 FilamentSpatieRolesPermissionsPlugin::make()
             ])
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Blue,
             ])
             ->userMenuItems([
                 'profile' => MenuItem::make()
