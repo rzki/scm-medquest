@@ -142,7 +142,8 @@ class TemperatureHumidityResource extends Resource
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->step(0.1)
-                                    ->suffix('°C'),
+                                    ->suffix('°C')
+                                    ->maxValue(100),
                                 TextInput::make('rh_0800')
                                     ->label('Humidity')
                                     ->suffix('%')
@@ -163,7 +164,8 @@ class TemperatureHumidityResource extends Resource
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
-                                    ->suffix('°C'),
+                                    ->suffix('°C')
+                                    ->maxValue(100),
                                 TextInput::make('rh_1100')
                                     ->label('Humidity')
                                     ->suffix('%')
@@ -183,7 +185,8 @@ class TemperatureHumidityResource extends Resource
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
-                                    ->suffix('°C'),
+                                    ->suffix('°C')
+                                    ->maxValue(100),
                                 TextInput::make('rh_1400')
                                     ->label('Humidity')
                                     ->suffix('%')
@@ -203,7 +206,8 @@ class TemperatureHumidityResource extends Resource
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
-                                    ->suffix('°C'),
+                                    ->suffix('°C')
+                                    ->maxValue(100),
                                 TextInput::make('rh_1700')
                                     ->label('Humidity')
                                     ->suffix('%')
