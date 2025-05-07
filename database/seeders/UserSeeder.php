@@ -18,7 +18,6 @@ class UserSeeder extends Seeder
             'email' => 'superadmin@medquest.co.id',
             'password' => Hash::make('Superadmin2025!')
         ]);
-
         $superadmin->assignRole('Super Admin');
 
         $supplyChainManager = User::create([
@@ -28,7 +27,6 @@ class UserSeeder extends Seeder
             'email' => 'scm@medquest.co.id',
             'password' => Hash::make('Scm2025!')
         ]);
-
         $supplyChainManager->assignRole('Supply Chain Manager');
 
         $qaManager = User::create([
@@ -38,7 +36,24 @@ class UserSeeder extends Seeder
             'email' => 'qam@medquest.co.id',
             'password' => Hash::make('Scm2025!')
         ]);
-
         $qaManager->assignRole('QA Manager');
+
+        $sco = User::create([
+            'userId' => Str::orderedUuid(),
+            'name' => 'Supply Chain Officer',
+            'initial' => 'SCO',
+            'email' => 'sco@medquest.co.id',
+            'password' => Hash::make('Scm2025!')
+        ]);
+        $sco->assignRole('Supply Chain Officer');
+
+        $qas = User::create([
+            'userId' => Str::orderedUuid(),
+            'name' => 'QA Staff',
+            'initial' => 'QAS',
+            'email' => 'qas@medquest.co.id',
+            'password' => Hash::make('Scm2025!')
+        ]);
+        $qas->assignRole('QA Staff');
     }
 }
