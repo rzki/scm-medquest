@@ -77,7 +77,7 @@ class TemperatureHumidityExport implements FromCollection, WithHeadings, ShouldA
     public function map($record): array
     {
         return [
-            $record->location->location_name . ' / ' . $record->location->serial_number,
+            $record->location->location_name . ' / ' . $record->serialNumber->serial_number,
             Carbon::parse($record->date)->format('d'),
             strtoupper(Carbon::parse($record->period)->format('M Y')),
             $record->time_0800 ? Carbon::parse($record->time_0800)->format('H:i') : '-',

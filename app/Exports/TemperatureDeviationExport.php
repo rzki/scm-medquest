@@ -69,7 +69,7 @@ class TemperatureDeviationExport implements FromCollection, WithHeadings, Should
     public function map($record): array
     {
         return [
-            $record->location->location_name . ' / ' . $record->location->serial_number,
+            $record->location->location_name . ' / ' . $record->serialNumber->serial_number,
             Carbon::parse($record->date)->format('d'),
             $record->temperature_deviation. ' °C' ?? '-',
             $record->length_temperature_deviation ?? '-',
