@@ -432,7 +432,7 @@ class TemperatureHumidityResource extends Resource
                             ->body('Selected data marked as reviewed successfully')
                             ->success()
                             ->send();
-                    }),
+                    })->visible(fn() => Auth::user()->hasRole(['Supply Chain Manager'])),
                     BulkAction::make('is_acknowledged')
                         ->label('Mark as Acknowledged')
                         ->icon('heroicon-o-check-badge')
@@ -465,7 +465,7 @@ class TemperatureHumidityResource extends Resource
                                 ->body('Selected data marked as acknowledged successfully')
                                 ->success()
                                 ->send();
-                        }),
+                        })->visible(fn() => Auth::user()->hasRole(['QA Manager', 'QA Supervisor'])),
                     DeleteBulkAction::make(),
                 ]),
             ]);

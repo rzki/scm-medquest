@@ -102,7 +102,6 @@ class EditTemperatureHumidity extends EditRecord
             }
         }
         
-
         $recipient = auth()->user();
         Notification::make()
             ->success()
@@ -160,7 +159,7 @@ class EditTemperatureHumidity extends EditRecord
                 ->icon('heroicon-o-check'),
             Action::make('is_acknowledged')
                 ->label('Mark as Acknowledged')
-                ->visible(fn () => Auth::user()->hasRole('QA Manager'))
+                ->visible(fn () => Auth::user()->hasRole(['QA Manager', 'QA Supervisor']))
                 ->action(function (Model $record) {
                     $record->update([
                         'is_acknowledged' => true,
@@ -177,5 +176,12 @@ class EditTemperatureHumidity extends EditRecord
                 ->color('info')
                 ->icon('heroicon-o-check'),
         ];
+    }
+    
+    protected function getSavedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Temperature & Humidity successfully updated');
     }
 }

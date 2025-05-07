@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\TemperatureDeviationResource\Pages;
 
-use App\Filament\Resources\TemperatureDeviationResource;
 use Filament\Actions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\TemperatureDeviationResource;
 
 class ListTemperatureDeviations extends ListRecords
 {
@@ -17,7 +18,10 @@ class ListTemperatureDeviations extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make()
+            ->label('New Temperature Deviation')
+            ->color('success')
+            ->visible(fn() => auth()->user()->hasRole('Supply Chain Officer')),
         ];
     }
 }

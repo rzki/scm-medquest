@@ -5,6 +5,7 @@ namespace App\Filament\Resources\TemperatureDeviationResource\Pages;
 use Carbon\Carbon;
 use App\Models\Location;
 use Illuminate\Support\Str;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use App\Filament\Resources\TemperatureDeviationResource;
 
@@ -38,5 +39,16 @@ class CreateTemperatureDeviation extends CreateRecord
         $data['temperature_deviation'] = request()->get('temperature_deviation') ?? $data['temperature_deviation'];
         $data['pic'] = auth()->user()->initial.' ' . strtoupper(Carbon::now()->format('d M Y'));
         return $data;
+    }
+    protected function getRedirectUrl(): string
+    {
+        // Default fallback
+        return $this->getResource()::getUrl('index');
+    }
+    protected function getCreatedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Temperature Deviation successfully created');
     }
 }

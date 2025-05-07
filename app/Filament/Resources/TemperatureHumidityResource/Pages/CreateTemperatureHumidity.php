@@ -135,7 +135,6 @@ class CreateTemperatureHumidity extends CreateRecord
     {
         return Notification::make()
             ->success()
-            ->title('Temperature & Humidity successfully created')
-            ->body('The Temperature & Humidity has been created successfully.');
+            ->title('Temperature & Humidity successfully created');
     }
 }

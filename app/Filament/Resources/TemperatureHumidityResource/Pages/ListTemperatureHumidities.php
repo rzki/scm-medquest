@@ -20,7 +20,8 @@ class ListTemperatureHumidities extends ListRecords
         return [
             CreateAction::make()
             ->label('New Temperature & Humidity')
-            ->color('success'),
+            ->color('success')
+            ->visible(fn() => auth()->user()->hasRole('Supply Chain Officer') && now()->timezone('Asia/Jakarta')->isToday()),
         ];
     }
 }

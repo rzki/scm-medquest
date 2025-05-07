@@ -60,4 +60,10 @@ class EditTemperatureDeviation extends EditRecord
         // Default fallback
         return $this->getResource()::getUrl('index');
     }
+    protected function getSavedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Temperature Deviation successfully updated');
+    }
 }
