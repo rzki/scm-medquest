@@ -16,4 +16,8 @@ class TemperatureHumidity extends Model
     {
         return $this->belongsTo(Location::class);
     }
+    public function serialNumber()
+    {
+        return $this->belongsTo(SerialNumber::class);
+    }
 }
