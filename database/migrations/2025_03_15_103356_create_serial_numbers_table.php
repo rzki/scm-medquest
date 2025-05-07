@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('locations', function (Blueprint $table) {
+        Schema::create('serial_numbers', function (Blueprint $table) {
             $table->id();
-            $table->uuid('locationId');
-            $table->string('location_name');
-            $table->string('temperature_start');
-            $table->string('temperature_end');
+            $table->uuid('serialNumberId')->unique();
+            $table->foreignId('location_id')->constrained('locations')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->string('serial_number')->unique();
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('locations');
+        Schema::dropIfExists('serial_numbers');
     }
 };

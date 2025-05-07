@@ -16,4 +16,8 @@ class Location extends Model
     {
         return $this->hasMany(TemperatureDeviation::class);
     }
+    public function serialNumbers()
+    {
+        return $this->hasMany(SerialNumber::class);
+    }
 }

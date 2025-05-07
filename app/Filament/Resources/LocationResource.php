@@ -22,9 +22,13 @@ use App\Filament\Resources\LocationResource\RelationManagers;
 class LocationResource extends Resource
 {
     protected static ?string $model = Location::class;
-    protected static ?int $navigationSort = 2;
-    protected static ?string $navigationGroup = 'Admin Settings';
-
+    // protected static ?int $navigationSort = 2;
+    protected static ?string $navigationIcon = 'heroicon-o-map-pin';
+    protected static ?string $navigationGroup = 'Location & Serial Number';
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasRole(['Super Admin']);
+    }
     public static function form(Form $form): Form
     {
         return $form
@@ -34,11 +38,6 @@ class LocationResource extends Resource
                     ->required()
                     ->maxLength(255)
                     ->placeholder('Enter location name'),
-                TextInput::make('serial_number')
-                    ->label('Serial Number')
-                    ->required()
-                    ->maxLength(255)
-                    ->placeholder('Enter serial number'),
                 TextInput::make('temperature_start')
                     ->label('Temperature Start')
                     ->required()
@@ -59,9 +58,6 @@ class LocationResource extends Resource
             ->columns([
                 TextColumn::make('location_name')
                     ->label('Location Name')
-                    ->searchable(),
-                TextColumn::make('serial_number')
-                    ->label('Serial Number')
                     ->searchable(),
                 TextColumn::make('temperature_start')
                     ->label('Temperature Range')
