@@ -4,19 +4,21 @@ namespace App\Filament\Resources;
 
 use Filament\Tables;
 use Filament\Forms\Form;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Table;
 use App\Models\SerialNumber;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Select;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 use App\Filament\Resources\SerialNumberResource\Pages;
 
 class SerialNumberResource extends Resource
 {
     protected static ?string $model = SerialNumber::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-hashtag';
 
     protected static ?string $navigationGroup = 'Location & Serial Number';
     public static function form(Form $form): Form
@@ -38,6 +40,7 @@ class SerialNumberResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->orderByDesc('created_at'))
             ->columns([
                 TextColumn::make('locations.location_name')
                     ->label('Location')
@@ -53,11 +56,12 @@ class SerialNumberResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                EditAction::make(),
+                DeleteAction::make()
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
