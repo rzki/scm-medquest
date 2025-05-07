@@ -17,6 +17,7 @@ return new class extends Migration
             $table->date('date');
             $table->date('period');
             $table->foreignId('location_id')->constrained('locations')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('serial_number_id')->constrained('serial_numbers')->cascadeOnDelete()->cascadeOnUpdate();
             $table->time('time_0800')->nullable();
             $table->decimal('temp_0800', 5, 2)->nullable();
             $table->integer('rh_0800')->nullable();
