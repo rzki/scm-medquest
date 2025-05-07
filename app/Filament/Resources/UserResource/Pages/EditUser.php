@@ -19,7 +19,6 @@ class EditUser extends EditRecord
     {
         return Notification::make()
             ->success()
-            ->title('User updated')
-            ->body('User data has been updated successfully!');
+            ->title('User has been successfully updated');
     }
 }
