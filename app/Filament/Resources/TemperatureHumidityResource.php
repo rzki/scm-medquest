@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\SerialNumber;
 use Carbon\Carbon;
 use App\Models\Location;
 use Filament\Forms\Form;
@@ -76,28 +77,22 @@ class TemperatureHumidityResource extends Resource
                     ->schema([
                         Select::make('location_id')
                             ->label('Location')
-                            ->relationship('location')
-                            ->getOptionLabelFromRecordUsing(function ($record) {
-                                return "{$record->location_name} / {$record->serial_number}";
-                            })
+                            ->relationship('location', 'location_name')
                             ->preload()
                             ->searchable()
                             ->afterStateUpdated(function ($state, callable $set) {
                                 $location = Location::find($state);
                                 if ($location) {
-                                    $set('serial_number', $location->serial_number); // set the serial_number field
                                     $formatted = "{$location->temperature_start}°C to {$location->temperature_end}°C";
                                     $set('observed_temperature', $formatted);
                                     $set('temperature_start', $location->temperature_start);
                                     $set('temperature_end', $location->temperature_end);
                                 }
+                                $set('serial_number_id', null);
                             })
                             ->afterStateHydrated(function ($state, callable $set) {
-                                // Load values when editing
                                 $location = Location::find($state);
-
                                 if ($location) {
-                                    $set('serial_number', $location->serial_number);
                                     $set('observed_temperature', "{$location->temperature_start}°C to {$location->temperature_end}°C");
                                     $set('temperature_start', $location->temperature_start);
                                     $set('temperature_end', $location->temperature_end);
@@ -117,10 +112,23 @@ class TemperatureHumidityResource extends Resource
                                 }
                             })
                             ->required(),
-                        TextInput::make('serial_number')
+                        Select::make('serial_number_id')
                             ->label('Serial Number')
+                            ->options(function (callable $get) {
+                                $locationId = $get('location_id');
+
+                                if (!$locationId) {
+                                    return [];
+                                }
+
+                                return SerialNumber::where('location_id', $locationId)
+                                    ->pluck('serial_number', 'id');
+                            })
+                            ->searchable()
                             ->required()
-                            ->disabled(),
+                            ->disabled(fn (callable $get) => ! $get('location_id'))
+                            ->preload()
+                            ->required(),
                         TextInput::make('observed_temperature')
                             ->label('Storage Temperature Standards')
                             ->disabled()
@@ -237,7 +245,7 @@ class TemperatureHumidityResource extends Resource
                 TextColumn::make('location.location_name')
                     ->label('Location')
                     ->getStateUsing(function ($record) {
-                        return $record->location->location_name . ' / ' . $record->location->serial_number;
+                        return $record->location->location_name . ' / ' . $record->serialNumber->serial_number;
                     }),
                 TextColumn::make('0800_data')
                     ->label('08:00')
