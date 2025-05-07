@@ -9,6 +9,7 @@ use App\Models\Location;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
+use App\Models\SerialNumber;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Illuminate\Support\Collection;
@@ -84,18 +85,17 @@ class TemperatureDeviationResource extends Resource
                         }),
                         Select::make('location_id')
                             ->label('Location')
-                            ->relationship('location')
+                            ->relationship('location', 'location_name')
                             ->default(fn () => request()->get('location_id') ?? null)
                             ->required()
                             ->getOptionLabelFromRecordUsing(function ($record) {
-                                return "{$record->location_name} / {$record->serial_number}";
+                                return "{$record->location_name}";
                             })
                             ->preload()
                             ->searchable()
                             ->afterStateUpdated(function ($state, callable $set) {
                                 $location = Location::find($state);
                                 if ($location) {
-                                    $set('serial_number', $location->serial_number); // set the serial_number field
                                     $formatted = "{$location->temperature_start}°C to {$location->temperature_end}°C";
                                     $set('observed_temperature', $formatted);
                                     $set('temperature_start', $location->temperature_start);
@@ -107,17 +107,29 @@ class TemperatureDeviationResource extends Resource
                                 $location = Location::find($state);
 
                                 if ($location) {
-                                    $set('serial_number', $location->serial_number);
                                     $set('observed_temperature', "{$location->temperature_start}°C to {$location->temperature_end}°C");
                                     $set('temperature_start', $location->temperature_start);
                                     $set('temperature_end', $location->temperature_end);
                                 }
                             })
                             ->reactive(),
-                        TextInput::make('serial_number')
+                        Select::make('sn_id')
                             ->label('Serial Number')
+                            ->options(function (callable $get) {
+                                $locationId = $get('location_id');
+
+                                if (!$locationId) {
+                                    return [];
+                                }
+
+                                return SerialNumber::where('location_id', $locationId)
+                                    ->pluck('serial_number', 'id');
+                            })
+                            ->searchable()
                             ->required()
-                            ->disabled(),
+                            ->disabled(fn (callable $get) => ! $get('location_id'))
+                            ->preload()
+                            ->required(),
                         TextInput::make('observed_temperature')
                             ->label('Storage Temperature Standards')
                             ->disabled()
@@ -159,7 +171,9 @@ class TemperatureDeviationResource extends Resource
                     ->label('Location / Serial Number')
                     ->sortable()
                     ->searchable()
-                    ->formatStateUsing(fn($record) => "{$record->location->location_name} / {$record->location->serial_number}"),
+                    ->getStateUsing(function ($record) {
+                        return $record->location->location_name . ' / ' . $record->serialNumber->serial_number;
+                    }),
                 TextColumn::make('date')
                     ->label('Date (Tanggal)')
                     ->sortable()
