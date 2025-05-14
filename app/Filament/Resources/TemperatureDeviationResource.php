@@ -196,6 +196,10 @@ class TemperatureDeviationResource extends Resource
                     ->label('Risk Analysis of impact deviation'),
                 TextColumn::make('analyzer_pic')
                     ->label('Analyzed by (QA)'),
+                TextColumn::make('reviewed_by')
+                    ->label('Reviewed by (SCM)'),
+                TextColumn::make('acknowledged_by')
+                    ->label('Acknowledged by (QA)')
             ])
             ->filters([
                 SelectFilter::make('location_id')
