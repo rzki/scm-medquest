@@ -4,7 +4,9 @@ namespace App\Filament\Resources\TemperatureHumidityResource\Pages;
 
 use Filament\Actions;
 use Filament\Actions\Action;
+use Filament\Pages\Actions\DeleteAction;
 use Illuminate\Support\Facades\Auth;
+use Filament\Pages\Actions\EditAction;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -16,6 +18,8 @@ class ViewTemperatureHumidity extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            EditAction::make()
+                ->visible(fn () => Auth::user()->hasRole('Supply Chain Officer')),
             Action::make('is_reviewed')
                 ->label('Mark as Reviewed')
                 ->visible(fn () => Auth::user()->hasRole(['Supply Chain Manager', 'Super Admin']))
