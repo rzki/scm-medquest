@@ -144,20 +144,23 @@ class TemperatureDeviationResource extends Resource
                         ->label('Temperature deviation (°C)')
                         ->required(Auth::user()->hasRole('Staff'))
                         ->default(fn() => request()->get('temperature_deviation'))
-                        ->dehydrated(true),
+                        ->dehydrated(),
                     TextArea::make('deviation_reason')
                         ->label('Reason for deviation')
-                        ->required(Auth::user()->hasRole('Staff')),
+                        ->required(Auth::user()->hasRole('Staff'))
+                        ->dehydrated(),
                 ])->disabled(fn() => !Auth::user()->hasRole('Supply Chain Officer')),
                 Section::make('Length of Temperature Deviation & Risk Analysis (Filled by QA Staff / Supervisor)')
                 ->columns(2)
                 ->schema([
                     TextInput::make('length_temperature_deviation')
                         ->label('Length Temperature deviation (Minutes/Hours)')
-                        ->required(Auth::user()->hasRole(['QA Staff', 'QA Supervisor'])),
+                        ->required(Auth::user()->hasRole(['QA Staff', 'QA Supervisor']))
+                        ->dehydrated(),
                     TextArea::make('risk_analysis')
                         ->label('Risk Analysis')
-                        ->required(Auth::user()->hasRole(['QA Staff', 'QA Supervisor'])),
+                        ->required(Auth::user()->hasRole(['QA Staff', 'QA Supervisor']))
+                        ->dehydrated(),
                 ])->disabled(fn() => !Auth::user()->hasAnyRole(['QA Staff', 'QA Supervisor'])),
             ]);
     }
@@ -197,9 +200,9 @@ class TemperatureDeviationResource extends Resource
                 TextColumn::make('analyzer_pic')
                     ->label('Analyzed by (QA)'),
                 TextColumn::make('reviewed_by')
-                    ->label('Reviewed by (SCM)'),
+                    ->label('Reviewed by'),
                 TextColumn::make('acknowledged_by')
-                    ->label('Acknowledged by (QA)')
+                    ->label('Acknowledged by')
             ])
             ->filters([
                 SelectFilter::make('location_id')
@@ -262,7 +265,7 @@ class TemperatureDeviationResource extends Resource
                 Action::make('is_reviewed')
                     ->label('Mark as Reviewed')
                     ->visible(function (TemperatureDeviation $record) {
-                        $isReviewed = $record->is_reviewed == false;
+                        $isReviewed = $record->is_reviewed == false && $record->temperature_deviation != null && $record->deviation_reason != null;
                         $admin = Auth::user()->hasRole(['Super Admin', 'Supply Chain Manager']);
                         return $isReviewed && $admin;
                     })
@@ -284,7 +287,7 @@ class TemperatureDeviationResource extends Resource
                 Action::make('is_acknowledged')
                     ->label('Mark as Acknowledged')
                     ->visible(function (TemperatureDeviation $record) {
-                        $isAcknowledged = $record->is_acknowledged == false;
+                        $isAcknowledged = $record->is_acknowledged == false && $record->length_temperature_deviation != null && $record->risk_analysis != null;
                         $admin = Auth::user()->hasRole(['Super Admin', 'QA Manager']);
                         return $isAcknowledged && $admin;
                     })

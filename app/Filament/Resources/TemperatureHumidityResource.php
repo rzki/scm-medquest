@@ -157,11 +157,11 @@ class TemperatureHumidityResource extends Resource
                                     ->suffix('%')
                                     ->numeric()
                                     ->maxValue(100),
-                            ])
-                            ->disabled(fn () => 
+                            ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '08:00' || 
                                     Carbon::now('Asia/Jakarta')->format('H:i') >= '11:31'
-                                ),
+                                )
+                            ->dehydrated(),
                         Section::make('1100')
                             ->columns(3)
                             ->schema([
@@ -182,7 +182,8 @@ class TemperatureHumidityResource extends Resource
                             ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '11:31' || 
                                     Carbon::now('Asia/Jakarta')->format('H:i') >= '14:31'
-                                ),
+                                )
+                                ->dehydrated(),
                         Section::make('1400')
                             ->columns(3)
                             ->schema([
@@ -203,7 +204,8 @@ class TemperatureHumidityResource extends Resource
                             ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '14:31' || 
                                     Carbon::now('Asia/Jakarta')->format('H:i') >= '17:30'
-                                ),
+                                )
+                                ->dehydrated(),
                         Section::make('1700')
                             ->columns(3)
                             ->schema([
@@ -224,7 +226,8 @@ class TemperatureHumidityResource extends Resource
                             ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '17:31' || 
                                     Carbon::now('Asia/Jakarta')->format('H:i') >= '19:30'
-                                ),
+                                )
+                                ->dehydrated(),
                     ])
             ])->columns(1);
     }
