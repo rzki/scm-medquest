@@ -32,7 +32,7 @@ class AcknowledgedTemperatureDeviation extends listRecords
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_acknowledged', false))
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_acknowledged', false)->whereNotNull('length_temperature_deviation')->whereNotNull('risk_analysis'))
             ->emptyStateHeading('No pending acknowledge data is found')
             ->columns([
                 TextColumn::make('date')
@@ -65,8 +65,8 @@ class AcknowledgedTemperatureDeviation extends listRecords
                 Action::make('is_acknowledged')
                     ->label('Mark as Acknowledged')
                     ->visible(function (TemperatureDeviation $record) {
-                        $isAcknowledged = $record->is_acknowledged == false;
-                        $admin = Auth::user()->hasRole(['Super Admin', 'QA Manager']);
+                        $isAcknowledged = $record->is_acknowledged == false && $record->length_temperature_deviation != null && $record->risk_analysis != null;
+                        $admin = Auth::user()->hasRole('QA Manager');
                         return $isAcknowledged && $admin;
                     })
                     ->action(function (Model $record) {
@@ -92,7 +92,9 @@ class AcknowledgedTemperatureDeviation extends listRecords
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn() => Auth::user()->hasRole(['QA Manager']))
+                    ->visible(function (TemperatureDeviation $record) {
+                        return !is_null($record->analyzer_pic) && Auth::user()->hasRole('QA Manager');
+                    })
                     ->action(function (Collection $records) {
                         foreach ($records as $record) {
                             $record->is_acknowledged = true;

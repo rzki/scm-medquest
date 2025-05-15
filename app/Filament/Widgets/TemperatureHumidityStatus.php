@@ -19,10 +19,19 @@ class TemperatureHumidityStatus extends BaseWidget
             Stat::make('Total Data (this month)', TemperatureHumidity::whereMonth('date', Carbon::now()->month)->count())
                 ->color('dark')
                 ->url(route('filament.dashboard.resources.temperature-humidities.index')),
-            Stat::make('Pending Review', TemperatureHumidity::where('is_reviewed', false)->count())
+            Stat::make('Pending Review', 
+            TemperatureHumidity::where('is_reviewed', false)
+            ->whereNotNull('time_0800')->whereNotNull('time_1100')->whereNotNull('time_1400')->whereNotNull('time_1700')
+            ->whereNotNull('temp_0800')->whereNotNull('temp_1100')->whereNotNull('temp_1400')->whereNotNull('temp_1700')
+            ->whereNotNull('rh_0800')->whereNotNull('rh_1100')->whereNotNull('rh_1400')->whereNotNull('rh_1700')
+            ->count())
                 ->color('warning')
                 ->url(route('filament.dashboard.resources.temperature-humidities.reviewed')),
-            Stat::make('Pending Acknowledged', TemperatureHumidity::where('is_acknowledged', false)->count())
+            Stat::make('Pending Acknowledged', TemperatureHumidity::where('is_acknowledged', false)
+            ->whereNotNull('time_0800')->whereNotNull('time_1100')->whereNotNull('time_1400')->whereNotNull('time_1700')
+            ->whereNotNull('temp_0800')->whereNotNull('temp_1100')->whereNotNull('temp_1400')->whereNotNull('temp_1700')
+            ->whereNotNull('rh_0800')->whereNotNull('rh_1100')->whereNotNull('rh_1400')->whereNotNull('rh_1700')
+            ->count())
                 ->color('info')
                 ->url(route('filament.dashboard.resources.temperature-humidities.acknowledged')),        
             ];

@@ -25,6 +25,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Forms\Components\TextInput;
@@ -36,9 +37,11 @@ use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use App\Exports\TemperatureDeviationExport;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Infolists\Components\Section as InfoSection;
 use App\Filament\Resources\TemperatureDeviationResource\Pages;
 use App\Filament\Resources\TemperatureDeviationResource\RelationManagers;
 
@@ -128,6 +131,7 @@ class TemperatureDeviationResource extends Resource
                             ->searchable()
                             ->required()
                             ->disabled(fn (callable $get) => ! $get('location_id'))
+                            ->default(fn () => request()->get('serial_number_id') ?? null)
                             ->preload()
                             ->required(),
                         TextInput::make('observed_temperature')
@@ -262,95 +266,14 @@ class TemperatureDeviationResource extends Resource
                     })
             ])
             ->actions([
-                Action::make('is_reviewed')
-                    ->label('Mark as Reviewed')
-                    ->visible(function (TemperatureDeviation $record) {
-                        $isReviewed = $record->is_reviewed == false && $record->temperature_deviation != null && $record->deviation_reason != null;
-                        $admin = Auth::user()->hasRole(['Super Admin', 'Supply Chain Manager']);
-                        return $isReviewed && $admin;
-                    })
-                    ->action(function (Model $record) {
-                        $record->update([
-                            'is_reviewed' => true,
-                            'reviewed_by' => auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y')),
-                            'reviewed_at' => now('Asia/Jakarta'),
-                        ]);
-                    Notification::make()
-                        ->title('Success!')
-                        ->body('Marked as reviewed successfully by Supply Chain Manager.')
-                        ->success()
-                        ->send();
-                    })
-                    ->requiresConfirmation()
-                    ->color('success')
-                    ->icon('heroicon-o-check'),
-                Action::make('is_acknowledged')
-                    ->label('Mark as Acknowledged')
-                    ->visible(function (TemperatureDeviation $record) {
-                        $isAcknowledged = $record->is_acknowledged == false && $record->length_temperature_deviation != null && $record->risk_analysis != null;
-                        $admin = Auth::user()->hasRole(['Super Admin', 'QA Manager']);
-                        return $isAcknowledged && $admin;
-                    })
-                    ->action(function (Model $record) {
-                        $record->update([
-                            'is_acknowledged' => true,
-                            'acknowledged_by' => auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y')),
-                            'acknowledged_at' => now('Asia/Jakarta'),
-                        ]);
-                    Notification::make()
-                        ->title('Success!')
-                        ->body('Marked as acknowledged successfully by QA Manager.')
-                        ->success()
-                        ->send();
-                    })
-                    ->requiresConfirmation()
-                    ->color('info')
-                    ->icon('heroicon-o-check'),
-                EditAction::make(),
-                DeleteAction::make(),
+                ViewAction::make(),
+                EditAction::make()
+                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole('Supply Chain Officer')),
+                DeleteAction::make()
+                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole('Supply Chain Officer')),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    BulkAction::make('is_reviewed')
-                    ->label('Mark as Reviewed')
-                    ->icon('heroicon-o-check-badge')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->visible(fn() => Auth::user()->hasRole(['Supply Chain Manager']))
-                    ->action(function (Collection $records) {
-                        foreach ($records as $record) {
-                            $record->is_reviewed = true;
-                            $record->reviewed_by = auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
-                            $record->reviewed_at = now('Asia/Jakarta');
-                            $record->save();
-                        }
-                        
-                    Notification::make()
-                        ->title('Success!')
-                        ->body('Selected data marked as reviewed successfully')
-                        ->success()
-                        ->send();
-                    }),
-                BulkAction::make('is_acknowledged')
-                    ->label('Mark as Acknowledged')
-                    ->icon('heroicon-o-check-badge')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->visible(fn() => Auth::user()->hasRole(['QA Manager']))
-                    ->action(function (Collection $records) {
-                        foreach ($records as $record) {
-                            $record->is_acknowledged = true;
-                            $record->acknowledged_by = auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
-                            $record->acknowledged_at = now('Asia/Jakarta');
-                            $record->save();
-                        }
-                        
-                        Notification::make()
-                            ->title('Success!')
-                            ->body('Selected data marked as acknowledged successfully')
-                            ->success()
-                            ->send();
-                    }),
                     DeleteBulkAction::make(),
                 ]),
             ]);
@@ -360,25 +283,52 @@ class TemperatureDeviationResource extends Resource
     {
         return $infolist
             ->schema([
-                Section::make('Date & Time')
+                InfoSection::make('Date & Time')
                     ->columns(2)
                     ->schema([
-                        TextColumn::make('date')
+                        TextEntry::make('date')
                             ->label('Date')
                             ->date('d/m/Y'),
-                        TextColumn::make('time')
+                        TextEntry::make('time')
                             ->label('Time')
                             ->time('H:i'),
                     ]),
-                Section::make('Location & Storage Temperature Standards')
+                InfoSection::make('Reviewed & Acknowledged')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('reviewed_by')
+                            ->label('Reviewed By')
+                            ->formatStateUsing(fn ($record) => $record->reviewed_by ? $record->reviewed_by : '-'),
+                        TextEntry::make('acknowledged_by')
+                            ->label('Acknowledged By')
+                            ->formatStateUsing(fn ($record) => $record->acknowledged_by ? $record->acknowledged_by : '-'),
+                    ]),
+                InfoSection::make('Location & Storage Temperature Standards')
                     ->columns(3)
                     ->schema([
-                        TextColumn::make('location.location_name')
+                        TextEntry::make('location.location_name')
                             ->label('Location'),
-                        TextColumn::make('location.serial_number')
+                        TextEntry::make('serialNumber.serial_number')
                             ->label('Serial Number'),
-                        TextColumn::make('location.temperature_start')
-                            ->label('Storage Temperature Standards'),
+                        TextEntry::make('location.temperature_start')
+                            ->label('Storage Temperature Standards')
+                            ->formatStateUsing(fn ($record) => $record->location->temperature_start.'°C to '.$record->location->temperature_end.'°C'),
+                    ]),
+                InfoSection::make('Temperature Deviation & Reason')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('temperature_deviation')
+                            ->label('Temperature Deviation'),
+                        TextEntry::make('deviation_reason')
+                            ->label('Reason for Deviation'),
+                    ]),
+                InfoSection::make('Length of Temperature Deviation & Risk Analysis')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('length_temperature_deviation')
+                            ->label('Length of Temperature Deviation'),
+                        TextEntry::make('risk_analysis')
+                            ->label('Risk Analysis'),
                     ]),
             ]);
     }
@@ -395,6 +345,7 @@ class TemperatureDeviationResource extends Resource
             'index' => Pages\ListTemperatureDeviations::route('/'),
             'create' => Pages\CreateTemperatureDeviation::route('/create'),
             'edit' => Pages\EditTemperatureDeviation::route('/{record}/edit'),
+            'view' => Pages\ViewTemperatureDeviation::route('/view/{record}'),
             'reviewed' => Pages\ReviewedTemperatureDeviation::route('/reviewed'),
             'acknowledged' => Pages\AcknowledgedTemperatureDeviation::route('/acknowledged'),
         ];

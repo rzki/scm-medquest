@@ -32,7 +32,7 @@ class ReviewedTemperatureDeviation extends ListRecords
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_reviewed', false))
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_reviewed', false)->whereNotNull('length_temperature_deviation')->whereNotNull('risk_analysis'))
             ->emptyStateHeading('No pending review data is found')
             ->columns([
                 TextColumn::make('date')
@@ -65,9 +65,9 @@ class ReviewedTemperatureDeviation extends ListRecords
                 Action::make('is_reviewed')
                     ->label('Mark as Reviewed')
                     ->visible(function (TemperatureDeviation $record) {
-                        $isReviewed = $record->is_reviewed == false;
-                        $admin = Auth::user()->hasRole(['Super Admin', 'Supply Chain Manager']);
-                        return $isReviewed && $admin;
+                        $isAcknowledged = $record->is_acknowledged == false && $record->length_temperature_deviation != null && $record->risk_analysis != null;
+                        $admin = Auth::user()->hasRole('Supply Chain Manager');
+                        return $isAcknowledged && $admin;
                     })
                     ->action(function (Model $record) {
                         $record->update([
@@ -92,7 +92,11 @@ class ReviewedTemperatureDeviation extends ListRecords
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn() => Auth::user()->hasRole(['Supply Chain Manager']))
+                    ->visible(function (TemperatureDeviation $record) {
+                        $isAcknowledged = $record->is_acknowledged == false && $record->length_temperature_deviation != null && $record->risk_analysis != null;
+                        $admin = Auth::user()->hasRole('Supply Chain Manager');
+                        return $isAcknowledged && $admin;
+                    })
                     ->action(function (Collection $records) {
                         foreach ($records as $record) {
                             $record->is_reviewed = true;

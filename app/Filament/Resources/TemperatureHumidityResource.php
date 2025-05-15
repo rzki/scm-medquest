@@ -144,14 +144,16 @@ class TemperatureHumidityResource extends Resource
                             ->schema([
                                 TimePicker::make('time_0800')
                                     ->label('Time')
-                                    ->seconds(false),
+                                    ->seconds(false)
+                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_0800')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->step(0.1)
                                     ->suffix('°C')
-                                    ->maxValue(100),
+                                    ->maxValue(100)
+                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_0800')
                                     ->label('Humidity')
                                     ->suffix('%')
@@ -167,13 +169,15 @@ class TemperatureHumidityResource extends Resource
                             ->schema([
                                 TimePicker::make('time_1100')
                                     ->label('Time')
-                                    ->seconds(false),
+                                    ->seconds(false)
+                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_1100')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->suffix('°C')
-                                    ->maxValue(100),
+                                    ->maxValue(100)
+                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_1100')
                                     ->label('Humidity')
                                     ->suffix('%')
@@ -189,13 +193,15 @@ class TemperatureHumidityResource extends Resource
                             ->schema([
                                 TimePicker::make('time_1400')
                                     ->label('Time')
-                                    ->seconds(false),
+                                    ->seconds(false)
+                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_1400')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->suffix('°C')
-                                    ->maxValue(100),
+                                    ->maxValue(100)
+                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_1400')
                                     ->label('Humidity')
                                     ->suffix('%')
@@ -211,13 +217,15 @@ class TemperatureHumidityResource extends Resource
                             ->schema([
                                 TimePicker::make('time_1700')
                                     ->label('Time')
-                                    ->seconds(false),
+                                    ->seconds(false)
+                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_1700')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->suffix('°C')
-                                    ->maxValue(100),
+                                    ->maxValue(100)
+                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_1700')
                                     ->label('Humidity')
                                     ->suffix('%')
@@ -361,122 +369,12 @@ class TemperatureHumidityResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make()
-                ->visible(fn($record) => $record->date == now()->toDateString()),
-                Action::make('is_reviewed')
-                    ->label('Mark as Reviewed')
-                    ->visible(function (TemperatureHumidity $record) {
-                        $isReviewed = $record->is_reviewed == false;
-                        $admin = Auth::user()->hasRole(['Supply Chain Manager']);
-                        return $isReviewed && $admin;
-                    })
-                    ->action(function (Model $record) {
-                        $record->update([
-                            'is_reviewed' => true,
-                            'reviewed_by' => auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y')),
-                            'reviewed_at' => now('Asia/Jakarta'),
-                        ]);
-                    Notification::make()
-                        ->title('Success!')
-                        ->body('Marked as reviewed successfully')
-                        ->success()
-                        ->send();
-                    })
-                    ->requiresConfirmation()
-                    ->color('success')
-                    ->icon('heroicon-o-check'),
-                Action::make('is_acknowledged')
-                    ->label('Mark as Acknowledged')
-                    ->visible(function (TemperatureHumidity $record) {
-                        $isAcknowledged = $record->is_acknowledged == false;
-                        $admin = Auth::user()->hasRole(['QA Manager']);
-                        return $isAcknowledged && $admin;
-                    })
-                    ->action(function (Model $record) {
-                        $record->update([
-                            'is_acknowledged' => true,
-                            'acknowledged_by' => auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y')),
-                            'acknowledged_at' => now('Asia/Jakarta'),
-                        ]);
-                    Notification::make()
-                        ->title('Success!')
-                        ->body('Marked as acknowledged successfully')
-                        ->success()
-                        ->send();
-                    })
-                    ->requiresConfirmation()
-                    ->color('info')
-                    ->icon('heroicon-o-check'),
+                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole('Supply Chain Officer')),
                 DeleteAction::make()
-                ->visible(fn($record) => $record->date == now()->toDateString()),
+                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole('Supply Chain Officer')),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    BulkAction::make('is_reviewed')
-                    ->label('Mark as Reviewed')
-                    ->icon('heroicon-o-check-badge')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->deselectRecordsAfterCompletion()
-                    ->visible(fn() => Auth::user()->hasRole(['Supply Chain Manager']))
-                    ->action(function (Collection $records) {
-                        $alreadyReviewed = $records->every(fn ($record) => $record->is_reviewed);
-
-                        if ($alreadyReviewed) {
-                            Notification::make()
-                                ->title('All selected records are already reviewed.')
-                                ->warning()
-                                ->send();
-
-                            return;
-                        }
-                        foreach ($records as $record) {
-                            if (! $record->is_reviewed) {
-                                $record->is_reviewed = true;
-                                $record->reviewed_by = auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
-                                $record->reviewed_at = now('Asia/Jakarta');
-                                $record->save();
-                            }
-                        }
-                        
-                        Notification::make()
-                            ->title('Success!')
-                            ->body('Selected data marked as reviewed successfully')
-                            ->success()
-                            ->send();
-                    })->visible(fn() => Auth::user()->hasRole(['Supply Chain Manager'])),
-                    BulkAction::make('is_acknowledged')
-                        ->label('Mark as Acknowledged')
-                        ->icon('heroicon-o-check-badge')
-                        ->color('success')
-                        ->requiresConfirmation()
-                        ->deselectRecordsAfterCompletion()
-                        ->visible(fn() => Auth::user()->hasRole(['QA Manager']))
-                        ->action(function (Collection $records) {
-                            $alreadyAcknowledged = $records->every(fn ($record) => $record->is_acknowledged);
-
-                            if ($alreadyAcknowledged) {
-                                Notification::make()
-                                    ->title('All selected records are already acknowledged.')
-                                    ->warning()
-                                    ->send();
-
-                                return;
-                            }
-                            foreach ($records as $record) {
-                                if (! $record->is_acknowledged); {
-                                    $record->is_acknowledged = true;
-                                    $record->acknowledged_by = auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
-                                    $record->acknowledged_at = now('Asia/Jakarta');
-                                    $record->save();
-                                }
-                            }
-                            
-                            Notification::make()
-                                ->title('Success!')
-                                ->body('Selected data marked as acknowledged successfully')
-                                ->success()
-                                ->send();
-                        })->visible(fn() => Auth::user()->hasRole(['QA Manager', 'QA Supervisor'])),
                     DeleteBulkAction::make(),
                 ]),
             ]);
@@ -620,4 +518,5 @@ class TemperatureHumidityResource extends Resource
                 ->sort(1),
         ];
     }
+
 }

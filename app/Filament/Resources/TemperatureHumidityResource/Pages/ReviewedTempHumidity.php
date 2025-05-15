@@ -31,7 +31,10 @@ class ReviewedTempHumidity extends ListRecords
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_reviewed', false))
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_reviewed', false)
+            ->whereNotNull('time_0800')->whereNotNull('time_1100')->whereNotNull('time_1400')->whereNotNull('time_1700')
+            ->whereNotNull('temp_0800')->whereNotNull('temp_1100')->whereNotNull('temp_1400')->whereNotNull('temp_1700')
+            ->whereNotNull('rh_0800')->whereNotNull('rh_1100')->whereNotNull('rh_1400')->whereNotNull('rh_1700'))
             ->emptyStateHeading('No pending review data is found')
             ->columns([
                 TextColumn::make('date')
@@ -99,7 +102,11 @@ class ReviewedTempHumidity extends ListRecords
                 ViewAction::make(),
                 Action::make('is_reviewed')
                     ->label('Mark as Reviewed')
-                    ->visible(fn() => Auth::user()->hasRole(['Supply Chain Manager']))
+                    ->visible(function (TemperatureHumidity $record) {
+                        $isAcknowledged = $record->is_acknowledged == false && $record->time_0800 != null && $record->time_1100 != null && $record->time_1400 != null && $record->time_1700 != null && $record->temp_0800 != null && $record->temp_1100 != null && $record->temp_1400 != null && $record->temp_1700 != null;    
+                        $admin = Auth::user()->hasRole('Supply Chain Manager');
+                        return $isAcknowledged && $admin;
+                    })
                     ->action(function (TemperatureHumidity $record) {
                         $record->update([
                             'is_reviewed' => true,
@@ -123,7 +130,11 @@ class ReviewedTempHumidity extends ListRecords
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn() => Auth::user()->hasRole(['Supply Chain Manager']))
+                    ->visible(function (TemperatureHumidity $record) {
+                        $isAcknowledged = $record->is_acknowledged == false && $record->time_0800 != null && $record->time_1100 != null && $record->time_1400 != null && $record->time_1700 != null && $record->temp_0800 != null && $record->temp_1100 != null && $record->temp_1400 != null && $record->temp_1700 != null;    
+                        $admin = Auth::user()->hasRole('Supply Chain Manager');
+                        return $isAcknowledged && $admin;
+                    })
                     ->action(function (Collection $records) {
                         $alreadyReviewed = $records->every(fn ($record) => $record->is_reviewed);
 

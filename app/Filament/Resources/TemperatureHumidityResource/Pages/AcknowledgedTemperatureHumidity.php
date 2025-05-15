@@ -30,7 +30,10 @@ class AcknowledgedTemperatureHumidity extends listRecords
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_acknowledged', false))
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_acknowledged', false)
+            ->whereNotNull('time_0800')->whereNotNull('time_1100')->whereNotNull('time_1400')->whereNotNull('time_1700')
+            ->whereNotNull('temp_0800')->whereNotNull('temp_1100')->whereNotNull('temp_1400')->whereNotNull('temp_1700')
+            ->whereNotNull('rh_0800')->whereNotNull('rh_1100')->whereNotNull('rh_1400')->whereNotNull('rh_1700'))
             ->emptyStateHeading('No pending acknowledged data is found')
             ->columns([
                 TextColumn::make('date')
@@ -99,8 +102,8 @@ class AcknowledgedTemperatureHumidity extends listRecords
                 Action::make('is_acknowledged')
                     ->label('Mark as Acknowledged')
                     ->visible(function (TemperatureHumidity $record) {
-                        $isAcknowledged = $record->is_acknowledged == false;
-                        $admin = Auth::user()->hasRole(['QA Manager']);
+                        $isAcknowledged = $record->is_acknowledged == false && $record->time_0800 != null && $record->time_1100 != null && $record->time_1400 != null && $record->time_1700 != null && $record->temp_0800 != null && $record->temp_1100 != null && $record->temp_1400 != null && $record->temp_1700 != null;
+                        $admin = Auth::user()->hasRole('QA Manager');
                         return $isAcknowledged && $admin;
                     })
                     ->action(function (TemperatureHumidity $record) {
@@ -126,7 +129,11 @@ class AcknowledgedTemperatureHumidity extends listRecords
                     ->icon('heroicon-o-check-badge')
                     ->color('info')
                     ->requiresConfirmation()
-                    ->visible(fn() => Auth::user()->hasRole(['QA Manager']))
+                    ->visible(function (TemperatureHumidity $record) {
+                        $isAcknowledged = $record->is_acknowledged == false && $record->time_0800 != null && $record->time_1100 != null && $record->time_1400 != null && $record->time_1700 != null && $record->temp_0800 != null && $record->temp_1100 != null && $record->temp_1400 != null && $record->temp_1700 != null;    
+                        $admin = Auth::user()->hasRole('QA Manager');
+                        return $isAcknowledged && $admin;
+                    })
                     ->action(function (Collection $records) {
                         $alreadyAcknowledged = $records->every(fn ($record) => $record->is_acknowledged);
 

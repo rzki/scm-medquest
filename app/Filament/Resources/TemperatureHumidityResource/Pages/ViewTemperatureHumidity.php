@@ -4,7 +4,7 @@ namespace App\Filament\Resources\TemperatureHumidityResource\Pages;
 
 use Filament\Actions;
 use Filament\Actions\Action;
-use Filament\Pages\Actions\DeleteAction;
+use App\Models\TemperatureHumidity;
 use Illuminate\Support\Facades\Auth;
 use Filament\Pages\Actions\EditAction;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +22,11 @@ class ViewTemperatureHumidity extends ViewRecord
                 ->visible(fn () => Auth::user()->hasRole('Supply Chain Officer')),
             Action::make('is_reviewed')
                 ->label('Mark as Reviewed')
-                ->visible(fn () => Auth::user()->hasRole(['Supply Chain Manager', 'Super Admin']))
+                    ->visible(function (TemperatureHumidity $record) {
+                        $isAcknowledged = $record->is_acknowledged == false && $record->time_0800 != null && $record->time_1100 != null && $record->time_1400 != null && $record->time_1700 != null && $record->temp_0800 != null && $record->temp_1100 != null && $record->temp_1400 != null && $record->temp_1700 != null;    
+                        $admin = Auth::user()->hasRole(['Supply Chain Manager']);
+                        return $isAcknowledged && $admin;
+                    })
                 ->action(function (Model $record) {
                     $record->update([
                         'is_reviewed' => true,
@@ -40,7 +44,11 @@ class ViewTemperatureHumidity extends ViewRecord
                 ->icon('heroicon-o-check'),
             Action::make('is_acknowledged')
                 ->label('Mark as Acknowledged')
-                ->visible(fn () => Auth::user()->hasRole(['QA Manager', 'Super Admin']))
+                    ->visible(function (TemperatureHumidity $record) {
+                        $isAcknowledged = $record->is_acknowledged == false && $record->time_0800 != null && $record->time_1100 != null && $record->time_1400 != null && $record->time_1700 != null && $record->temp_0800 != null && $record->temp_1100 != null && $record->temp_1400 != null && $record->temp_1700 != null;    
+                        $admin = Auth::user()->hasRole(['QA Manager']);
+                        return $isAcknowledged && $admin;
+                    })
                 ->action(function (Model $record) {
                     $record->update([
                         'is_acknowledged' => true,

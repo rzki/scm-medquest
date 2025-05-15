@@ -90,6 +90,7 @@ class CreateTemperatureHumidity extends CreateRecord
                 $deviationData[] = [
                     'temperature_id' => $temperatureHumidity->id,
                     'location_id' => $temperatureHumidity->location_id,
+                    'serial_number_id' => $temperatureHumidity->serial_number_id,
                     'time' => $inputtedTime,
                     'temperature_deviation' => $tempValue,
                 ];
@@ -124,6 +125,7 @@ class CreateTemperatureHumidity extends CreateRecord
             return TemperatureDeviationResource::getUrl('create',[
                 'temp_id' => $deviations[0]['temperature_id'],
                 'location_id' => $deviations[0]['location_id'],
+                'serial_number' => $deviations[0]['serial_number_id'],
                 'time' => $deviations[0]['time'],
                 'temperature_deviation' => $deviations[0]['temperature_deviation']
             ]); // Redirect to Deviation form
