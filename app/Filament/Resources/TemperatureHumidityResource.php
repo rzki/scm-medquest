@@ -2,32 +2,28 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\SerialNumber;
 use Carbon\Carbon;
 use App\Models\Location;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
+use App\Models\SerialNumber;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use App\Models\TemperatureHumidity;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\Filter;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
 use Filament\Navigation\NavigationItem;
-use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
-use Illuminate\Database\Eloquent\Model;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
-use Filament\Support\Enums\IconPosition;
-use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
 use Filament\Tables\Actions\DeleteAction;
@@ -36,10 +32,7 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Exports\TemperatureHumidityExport;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Tables\Actions\BulkActionGroup;
-use Illuminate\Database\Eloquent\Collection;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
 use Filament\Infolists\Components\Section as InfoSection;
 use App\Filament\Resources\TemperatureHumidityResource\Pages;
 
@@ -144,16 +137,16 @@ class TemperatureHumidityResource extends Resource
                             ->schema([
                                 TimePicker::make('time_0800')
                                     ->label('Time')
-                                    ->seconds(false)
-                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                    ->seconds(false),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_0800')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->step(0.1)
                                     ->suffix('°C')
-                                    ->maxValue(100)
-                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                    ->maxValue(100),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_0800')
                                     ->label('Humidity')
                                     ->suffix('%')
@@ -162,22 +155,22 @@ class TemperatureHumidityResource extends Resource
                             ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '08:00' || 
                                     Carbon::now('Asia/Jakarta')->format('H:i') >= '11:31'
-                                )
-                            ->dehydrated(),
+                            ),
+                            // ->dehydrated(),
                         Section::make('1100')
                             ->columns(3)
                             ->schema([
                                 TimePicker::make('time_1100')
                                     ->label('Time')
-                                    ->seconds(false)
-                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                    ->seconds(false),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_1100')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->suffix('°C')
-                                    ->maxValue(100)
-                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                    ->maxValue(100),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_1100')
                                     ->label('Humidity')
                                     ->suffix('%')
@@ -186,22 +179,22 @@ class TemperatureHumidityResource extends Resource
                             ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '11:31' || 
                                     Carbon::now('Asia/Jakarta')->format('H:i') >= '14:31'
-                                )
-                                ->dehydrated(),
+                            ),
+                                // ->dehydrated(),
                         Section::make('1400')
                             ->columns(3)
                             ->schema([
                                 TimePicker::make('time_1400')
                                     ->label('Time')
-                                    ->seconds(false)
-                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                    ->seconds(false),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_1400')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->suffix('°C')
-                                    ->maxValue(100)
-                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                    ->maxValue(100),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_1400')
                                     ->label('Humidity')
                                     ->suffix('%')
@@ -210,22 +203,22 @@ class TemperatureHumidityResource extends Resource
                             ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '14:31' || 
                                     Carbon::now('Asia/Jakarta')->format('H:i') >= '17:30'
-                                )
-                                ->dehydrated(),
+                            ),
+                                // ->dehydrated(),
                         Section::make('1700')
                             ->columns(3)
                             ->schema([
                                 TimePicker::make('time_1700')
                                     ->label('Time')
-                                    ->seconds(false)
-                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                    ->seconds(false),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_1700')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->suffix('°C')
-                                    ->maxValue(100)
-                                    ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                    ->maxValue(100),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_1700')
                                     ->label('Humidity')
                                     ->suffix('%')
@@ -235,7 +228,7 @@ class TemperatureHumidityResource extends Resource
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '17:31' || 
                                     Carbon::now('Asia/Jakarta')->format('H:i') >= '19:30'
                                 )
-                                ->dehydrated(),
+                                // ->dehydrated(),
                     ])
             ])->columns(1);
     }
@@ -265,7 +258,15 @@ class TemperatureHumidityResource extends Resource
                         $time0800 = $record->time_0800 ? Carbon::parse($record->time_0800)->format('H:i') : '-';
                         $rh0800 = $record->rh_0800 ?? '-';
                         $pic0800 = $record->pic_0800 ?? '-';
-                        return "Time: $time0800 <br> Temp: $temp0800 °C <br> Humidity: $rh0800% <br> PIC: $pic0800";
+                        
+                        $color = '';
+                        if ($temp0800 !== '-') {
+                            if ($temp0800 < $record->location->temperature_start || $temp0800 > $record->location->temperature_end) {
+                                $color = 'color: red; font-weight: bold;';
+                            }
+                        }
+                        
+                        return "<div style='$color'>Time: $time0800 <br> Temp: $temp0800 °C <br> Humidity: $rh0800% <br> PIC: $pic0800</div>";
                     })->html(),
                 TextColumn::make('1100_data')
                     ->label('11:00')
@@ -274,7 +275,15 @@ class TemperatureHumidityResource extends Resource
                         $time1100 = $record->time_1100 ? Carbon::parse($record->time_1100)->format('H:i') : '-';
                         $rh1100 = $record->rh_1100 ?? '-';
                         $pic1100 = $record->pic_1100 ?? '-';
-                        return "Time: $time1100 <br> Temp: $temp1100 °C <br> Humidity: $rh1100% <br> PIC: $pic1100";
+                        
+                        $color = '';
+                        if ($temp1100 !== '-') {
+                            if ($temp1100 < $record->location->temperature_start || $temp1100 > $record->location->temperature_end) {
+                                $color = 'color: red; font-weight: bold;';
+                            }
+                        }
+                        
+                        return "<div style='$color'>Time: $time1100 <br> Temp: $temp1100 °C <br> Humidity: $rh1100% <br> PIC: $pic1100</div>";
                     })->html(),
                 TextColumn::make('1400_data')
                     ->label('14:00')
@@ -283,7 +292,15 @@ class TemperatureHumidityResource extends Resource
                         $time1400 = $record->time_1400 ? Carbon::parse($record->time_1400)->format('H:i') : '-';
                         $rh1400 = $record->rh_1400 ?? '-';
                         $pic1400 = $record->pic_1400 ?? '-';
-                        return "Time: $time1400 <br> Temp: $temp1400 °C <br> Humidity: $rh1400% <br> PIC: $pic1400";
+                        
+                        $color = '';
+                        if ($temp1400 !== '-') {
+                            if ($temp1400 < $record->location->temperature_start || $temp1400 > $record->location->temperature_end) {
+                                $color = 'color: red; font-weight: bold;';
+                            }
+                        }
+                        
+                        return "<div style='$color'>Time: $time1400 <br> Temp: $temp1400 °C <br> Humidity: $rh1400% <br> PIC: $pic1400</div>";
                     })->html(),
                 TextColumn::make('1700_data')
                     ->label('17:00')
@@ -292,7 +309,15 @@ class TemperatureHumidityResource extends Resource
                         $time1700 = $record->time_1700 ? Carbon::parse($record->time_1700)->format('H:i') : '-';
                         $rh1700 = $record->rh_1700 ?? '-';
                         $pic1700 = $record->pic_1700 ?? '-';
-                        return "Time: $time1700 <br> Temp: $temp1700 °C <br> Humidity: $rh1700% <br> PIC: $pic1700";
+                        
+                        $color = '';
+                        if ($temp1700 !== '-') {
+                            if ($temp1700 < $record->location->temperature_start || $temp1700 > $record->location->temperature_end) {
+                                $color = 'color: red; font-weight: bold;';
+                            }
+                        }
+                        
+                        return "<div style='$color'>Time: $time1700 <br> Temp: $temp1700 °C <br> Humidity: $rh1700% <br> PIC: $pic1700</div>";
                     })->html(),
                 TextColumn::make('reviewed_by')
                     ->label('Reviewed By')
@@ -312,7 +337,24 @@ class TemperatureHumidityResource extends Resource
                     ->label('Location')
                     ->relationship('location', 'location_name')
                     ->searchable()
-                    ->preload()
+                    ->preload(),
+                Filter::make('period')
+                    ->form([
+                        DatePicker::make('period')
+                            ->label('Period')
+                            ->displayFormat('M Y')
+                            ->native(false)
+                            ->closeOnDateSelection()
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (!$data['period']) {
+                            return $query;
+                        }
+                        
+                        $date = Carbon::parse($data['period']);
+                        return $query->whereMonth('period', $date->month)
+                                    ->whereYear('period', $date->year);
+                    })
             ])
             ->headerActions([
                 Action::make('custom_export')
@@ -369,9 +411,9 @@ class TemperatureHumidityResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make()
-                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole('Supply Chain Officer')),
+                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole(['Supply Chain Officer'])),
                 DeleteAction::make()
-                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole('Supply Chain Officer')),
+                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole(['Supply Chain Officer'])),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

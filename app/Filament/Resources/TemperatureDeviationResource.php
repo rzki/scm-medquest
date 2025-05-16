@@ -3,8 +3,6 @@
 namespace App\Filament\Resources;
 
 use Carbon\Carbon;
-use Filament\Forms;
-use Filament\Tables;
 use App\Models\Location;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
@@ -12,38 +10,31 @@ use Illuminate\Support\Str;
 use App\Models\SerialNumber;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
-use Illuminate\Support\Collection;
 use App\Models\TemperatureHumidity;
 use Filament\Tables\Actions\Action;
 use App\Models\TemperatureDeviation;
-use Filament\Forms\Components\Radio;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
-use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
-use Illuminate\Database\Eloquent\Model;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
 use App\Exports\TemperatureDeviationExport;
-use Filament\Forms\Components\CheckboxList;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Infolists\Components\Section as InfoSection;
 use App\Filament\Resources\TemperatureDeviationResource\Pages;
-use App\Filament\Resources\TemperatureDeviationResource\RelationManagers;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Filters\Filter;
 
 class TemperatureDeviationResource extends Resource
 {
@@ -213,7 +204,24 @@ class TemperatureDeviationResource extends Resource
                     ->label('Location')
                     ->relationship('location', 'location_name')
                     ->searchable()
-                    ->preload()
+                    ->preload(),
+                Filter::make('period')
+                    ->form([
+                        DatePicker::make('period')
+                            ->label('Period')
+                            ->displayFormat('M Y')
+                            ->native(false)
+                            ->closeOnDateSelection()
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (!$data['period']) {
+                            return $query;
+                        }
+                        
+                        $date = Carbon::parse($data['period']);
+                        return $query->whereMonth('date', $date->month)
+                                   ->whereYear('date', $date->year);
+                    })
             ])
             ->headerActions([
                 Action::make('custom_export')
@@ -268,9 +276,9 @@ class TemperatureDeviationResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make()
-                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole('Supply Chain Officer')),
+                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole(['Supply Chain Officer', 'QA Staff'])),
                 DeleteAction::make()
-                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole('Supply Chain Officer')),
+                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole(['Supply Chain Officer', 'QA Staff'])),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
