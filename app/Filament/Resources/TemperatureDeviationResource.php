@@ -132,7 +132,7 @@ class TemperatureDeviationResource extends Resource
                         Hidden::make('temperature_start'),
                         Hidden::make('temperature_end')
                     ]),
-                Section::make('Temperature Deviation & Reason (Filled by Staff) ')
+                Section::make('Temperature Deviation & Reason (Filled by Staff / Security) ')
                 ->columns(2)
                 ->schema([
                     TextInput::make('temperature_deviation')
@@ -144,7 +144,7 @@ class TemperatureDeviationResource extends Resource
                         ->label('Reason for deviation')
                         ->required(Auth::user()->hasRole('Staff'))
                         ->dehydrated(),
-                ])->disabled(fn() => !Auth::user()->hasRole('Supply Chain Officer')),
+                ])->disabled(fn() => !Auth::user()->hasRole(['Supply Chain Officer', 'Security'])),
                 Section::make('Length of Temperature Deviation & Risk Analysis (Filled by QA Staff / Supervisor)')
                 ->columns(2)
                 ->schema([

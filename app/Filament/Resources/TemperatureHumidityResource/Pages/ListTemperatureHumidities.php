@@ -21,7 +21,7 @@ class ListTemperatureHumidities extends ListRecords
             CreateAction::make()
             ->label('New Temperature & Humidity')
             ->color('success')
-            ->visible(fn() => auth()->user()->hasRole('Supply Chain Officer')),
+            ->visible(fn() => auth()->user()->hasRole(['Supply Chain Officer', 'Security'])),
         ];
     }
 }

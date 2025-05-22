@@ -21,7 +21,7 @@ class ListTemperatureDeviations extends ListRecords
             CreateAction::make()
             ->label('New Temperature Deviation')
             ->color('success')
-            ->visible(fn() => auth()->user()->hasRole('Supply Chain Officer')),
+            ->visible(fn() => auth()->user()->hasRole(['Supply Chain Officer', 'Security'])),
         ];
     }
 }

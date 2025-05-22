@@ -20,7 +20,7 @@ class EditTemperatureHumidity extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         // Ensure temperature fields are set
-        $tempFields = ['temp_0800', 'temp_1100', 'temp_1400', 'temp_1700'];
+        $tempFields = ['temp_0800', 'temp_1100', 'temp_1400', 'temp_1700', 'temp_2000', 'temp_2300', 'temp_0200', 'temp_0500'];
         foreach ($tempFields as $temp) {
             $data[$temp] = $data[$temp] ?? null;
         }
@@ -36,7 +36,11 @@ class EditTemperatureHumidity extends EditRecord
             'pic_0800' => ['start' => '08:00', 'end' => '11:30'],
             'pic_1100' => ['start' => '11:31', 'end' => '14:30'],
             'pic_1400' => ['start' => '14:31', 'end' => '17:30'],
-            'pic_1700' => ['start' => '17:31', 'end' => '19:30'],
+            'pic_1700' => ['start' => '17:31', 'end' => '20:30'],
+            'pic_2000' => ['start' => '20:31', 'end' => '23:30'],
+            'pic_2300' => ['start' => '23:31', 'end' => '02:30'],
+            'pic_0200' => ['start' => '02:31', 'end' => '05:30'],
+            'pic_0500' => ['start' => '05:31', 'end' => '08:30'],
         ];
 
         foreach ($timeWindows as $picField => $window) {

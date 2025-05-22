@@ -226,8 +226,104 @@ class TemperatureHumidityResource extends Resource
                                     ->maxValue(100),
                             ])->disabled(fn () => 
                                     Carbon::now('Asia/Jakarta')->format('H:i') < '17:31' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '19:30'
-                                )
+                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '20:30'
+                            ),
+                                // ->dehydrated(),
+                        Section::make('2000')
+                            ->columns(3)
+                            ->schema([
+                                TimePicker::make('time_2000')
+                                    ->label('Time')
+                                    ->seconds(false),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                TextInput::make('temp_2000')
+                                    ->label('Temperature')
+                                    ->numeric()
+                                    ->inputMode('decimal')
+                                    ->suffix('°C')
+                                    ->maxValue(100),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                TextInput::make('rh_2000')
+                                    ->label('Humidity')
+                                    ->suffix('%')
+                                    ->numeric()
+                                    ->maxValue(100),
+                            ])->disabled(fn () => 
+                                    Carbon::now('Asia/Jakarta')->format('H:i') < '20:31' || 
+                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '23:30'
+                            ),
+                                // ->dehydrated(),
+                        Section::make('2300')
+                            ->columns(3)
+                            ->schema([
+                                TimePicker::make('time_2300')
+                                    ->label('Time')
+                                    ->seconds(false),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                TextInput::make('temp_2300')
+                                    ->label('Temperature')
+                                    ->numeric()
+                                    ->inputMode('decimal')
+                                    ->suffix('°C')
+                                    ->maxValue(100),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                TextInput::make('rh_2300')
+                                    ->label('Humidity')
+                                    ->suffix('%')
+                                    ->numeric()
+                                    ->maxValue(100),
+                            ])->disabled(fn () => 
+                                    Carbon::now('Asia/Jakarta')->format('H:i') < '23:31' || 
+                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '02:30'
+                            ),
+                                // ->dehydrated(),
+                        Section::make('0200')
+                            ->columns(3)
+                            ->schema([
+                                TimePicker::make('time_0200')
+                                    ->label('Time')
+                                    ->seconds(false),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                TextInput::make('temp_0200')
+                                    ->label('Temperature')
+                                    ->numeric()
+                                    ->inputMode('decimal')
+                                    ->suffix('°C')
+                                    ->maxValue(100),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                TextInput::make('rh_0200')
+                                    ->label('Humidity')
+                                    ->suffix('%')
+                                    ->numeric()
+                                    ->maxValue(100),
+                            ])->disabled(fn () => 
+                                    Carbon::now('Asia/Jakarta')->format('H:i') < '02:31' || 
+                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '05:30'
+                            ),
+                                // ->dehydrated(),
+                        Section::make('0500')
+                            ->columns(3)
+                            ->schema([
+                                TimePicker::make('time_0500')
+                                    ->label('Time')
+                                    ->seconds(false),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                TextInput::make('temp_0500')
+                                    ->label('Temperature')
+                                    ->numeric()
+                                    ->inputMode('decimal')
+                                    ->suffix('°C')
+                                    ->maxValue(100),
+                                    // ->required(Auth::user()->hasRole('Supply Chain Officer')),
+                                TextInput::make('rh_0500')
+                                    ->label('Humidity')
+                                    ->suffix('%')
+                                    ->numeric()
+                                    ->maxValue(100),
+                            ])->disabled(fn () => 
+                                    Carbon::now('Asia/Jakarta')->format('H:i') < '05:31' || 
+                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '08:30'
+                            ),
                                 // ->dehydrated(),
                     ])
             ])->columns(1);
@@ -318,6 +414,74 @@ class TemperatureHumidityResource extends Resource
                         }
                         
                         return "<div style='$color'>Time: $time1700 <br> Temp: $temp1700 °C <br> Humidity: $rh1700% <br> PIC: $pic1700</div>";
+                    })->html(),
+                TextColumn::make('2000_data')
+                    ->label('20:00')
+                    ->getStateUsing(function ($record) {
+                        $temp2000 = $record->temp_2000 ?? '-';
+                        $time2000 = $record->time_2000 ? Carbon::parse($record->time_2000)->format('H:i') : '-';
+                        $rh2000 = $record->rh_2000 ?? '-';
+                        $pic2000 = $record->pic_2000 ?? '-';
+                        
+                        $color = '';
+                        if ($temp2000 !== '-') {
+                            if ($temp2000 < $record->location->temperature_start || $temp2000 > $record->location->temperature_end) {
+                                $color = 'color: red; font-weight: bold;';
+                            }
+                        }
+                        
+                        return "<div style='$color'>Time: $time2000 <br> Temp: $temp2000 °C <br> Humidity: $rh2000% <br> PIC: $pic2000</div>";
+                    })->html(),
+                TextColumn::make('2300_data')
+                    ->label('23:00')
+                    ->getStateUsing(function ($record) {
+                        $temp2300 = $record->temp_2300 ?? '-';
+                        $time2300 = $record->time_2300 ? Carbon::parse($record->time_2300)->format('H:i') : '-';
+                        $rh2300 = $record->rh_2300 ?? '-';
+                        $pic2300 = $record->pic_2300 ?? '-';
+                        
+                        $color = '';
+                        if ($temp2300 !== '-') {
+                            if ($temp2300 < $record->location->temperature_start || $temp2300 > $record->location->temperature_end) {
+                                $color = 'color: red; font-weight: bold;';
+                            }
+                        }
+                        
+                        return "<div style='$color'>Time: $time2300 <br> Temp: $temp2300 °C <br> Humidity: $rh2300% <br> PIC: $pic2300</div>";
+                    })->html(),
+                TextColumn::make('0200_data')
+                    ->label('02:00')
+                    ->getStateUsing(function ($record) {
+                        $temp0200 = $record->temp_0200 ?? '-';
+                        $time0200 = $record->time_0200 ? Carbon::parse($record->time_0200)->format('H:i') : '-';
+                        $rh0200 = $record->rh_0200 ?? '-';
+                        $pic0200 = $record->pic_0200 ?? '-';
+                        
+                        $color = '';
+                        if ($temp0200 !== '-') {
+                            if ($temp0200 < $record->location->temperature_start || $temp0200 > $record->location->temperature_end) {
+                                $color = 'color: red; font-weight: bold;';
+                            }
+                        }
+                        
+                        return "<div style='$color'>Time: $time0200 <br> Temp: $temp0200 °C <br> Humidity: $rh0200% <br> PIC: $pic0200</div>";
+                    })->html(),
+                TextColumn::make('0500_data')
+                    ->label('05:00')
+                    ->getStateUsing(function ($record) {
+                        $temp0500 = $record->temp_0500 ?? '-';
+                        $time0500 = $record->time_0500 ? Carbon::parse($record->time_0500)->format('H:i') : '-';
+                        $rh0500 = $record->rh_0500 ?? '-';
+                        $pic0500 = $record->pic_0500 ?? '-';
+                        
+                        $color = '';
+                        if ($temp0500 !== '-') {
+                            if ($temp0500 < $record->location->temperature_start || $temp0500 > $record->location->temperature_end) {
+                                $color = 'color: red; font-weight: bold;';
+                            }
+                        }
+                        
+                        return "<div style='$color'>Time: $time0500 <br> Temp: $temp0500 °C <br> Humidity: $rh0500% <br> PIC: $pic0500</div>";
                     })->html(),
                 TextColumn::make('reviewed_by')
                     ->label('Reviewed By')
@@ -411,9 +575,9 @@ class TemperatureHumidityResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make()
-                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole(['Supply Chain Officer'])),
+                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole(['Supply Chain Officer', 'Security'])),
                 DeleteAction::make()
-                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole(['Supply Chain Officer'])),
+                ->visible(fn($record) => $record->date == now()->toDateString() && Auth::user()->hasRole(['Supply Chain Officer', 'Security'])),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
