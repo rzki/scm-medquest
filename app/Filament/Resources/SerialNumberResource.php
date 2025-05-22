@@ -21,6 +21,10 @@ class SerialNumberResource extends Resource
     protected static ?string $model = SerialNumber::class;
 
     protected static ?string $navigationGroup = 'Location & Serial Number';
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasRole(['Super Admin', 'Admin']);
+    }
     public static function form(Form $form): Form
     {
         return $form

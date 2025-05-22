@@ -25,7 +25,7 @@ class LocationResource extends Resource
     protected static ?string $navigationGroup = 'Location & Serial Number';
     public static function canViewAny(): bool
     {
-        return auth()->user()->hasRole(['Super Admin']);
+        return auth()->user()->hasRole(['Super Admin', 'Admin']);
     }
     public static function form(Form $form): Form
     {
