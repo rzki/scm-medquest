@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
             $table->uuid('locationId');
             $table->string('location_name');
-            $table->string('temperature_start');
-            $table->string('temperature_end');
             $table->timestamps();
         });
     }
