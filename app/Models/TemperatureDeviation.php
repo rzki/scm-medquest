@@ -12,9 +12,9 @@ class TemperatureDeviation extends Model
     {
         return $this->belongsTo(TemperatureHumidity::class);
     }
-    public function location()
+    public function device()
     {
-        return $this->belongsTo(Location::class);
+        return $this->belongsTo(Device::class);
     }
     public function serialNumber()
     {

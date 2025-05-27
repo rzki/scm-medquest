@@ -8,16 +8,8 @@ class Location extends Model
 {
     protected $guarded = ['id'];
 
-    public function temperatureHumidity()
+    public function devices()
     {
-        return $this->hasMany(TemperatureHumidity::class);
-    }
-    public function temperatureDeviations()
-    {
-        return $this->hasMany(TemperatureDeviation::class);
-    }
-    public function serialNumbers()
-    {
-        return $this->hasMany(SerialNumber::class);
+        return $this->hasMany(Device::class);
     }
 }
