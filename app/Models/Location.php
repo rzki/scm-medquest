@@ -7,9 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 class Location extends Model
 {
     protected $guarded = ['id'];
-
-    public function devices()
+    public function rooms()
     {
-        return $this->hasMany(Device::class);
+        return $this->hasMany(Room::class);
+    }
+    public function getRouteKeyName()
+    {
+        return 'locationId';
+    }
+    public function temperatureHumidities()
+    {
+        return $this->hasMany(TemperatureHumidity::class);
+    }
+    public function temperatureDeviations()
+    {
+        return $this->hasMany(TemperatureDeviation::class);
     }
 }

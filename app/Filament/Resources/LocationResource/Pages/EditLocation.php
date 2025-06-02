@@ -9,12 +9,9 @@ use Filament\Resources\Pages\EditRecord;
 class EditLocation extends EditRecord
 {
     protected static string $resource = LocationResource::class;
-
-    protected function getHeaderActions(): array
+    
+    protected function getRedirectUrl(): string
     {
-        return [
-            Actions\ViewAction::make(),
-            Actions\DeleteAction::make(),
-        ];
+        return LocationResource::getUrl('index');
     }
 }
