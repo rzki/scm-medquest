@@ -17,7 +17,9 @@ return new class extends Migration
             $table->uuid('temperatureDeviationId')->unique()->nullable();
             $table->foreignId('temperature_humidity_id')->nullable()->constrained('temperature_humidities')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('location_id')->constrained('locations')->cascadeOnDelete()->cascadeOnUpdate();
-            $table->foreignId('sn_id')->constrained('serial_numbers')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('room_id')->constrained('rooms')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('room_temperature_id')->constrained('room_temperatures')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('serial_number_id')->constrained('serial_numbers')->cascadeOnDelete()->cascadeOnUpdate();
             $table->date('date');
             $table->time('time');
             $table->decimal('temperature_deviation', 5, 2);
