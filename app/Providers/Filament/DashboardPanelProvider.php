@@ -110,7 +110,7 @@ class DashboardPanelProvider extends PanelProvider
                 ->icon('heroicon-o-cog')
                 ->collapsed(true),
                 NavigationGroup::make()
-                ->label('Location & Serial Number')
+                ->label('Location Management')
                 ->icon('heroicon-o-map-pin')
                 ->collapsed(true)
             ])
