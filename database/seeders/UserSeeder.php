@@ -55,5 +55,14 @@ class UserSeeder extends Seeder
             'password' => Hash::make('Scm2025!')
         ]);
         $qas->assignRole('QA Staff');
+
+        $sec = User::create([
+            'userId' => Str::orderedUuid(),
+            'name' => 'Security',
+            'initial' => 'SEC',
+            'email' => 'sec@medquest.co.id',
+            'password' => Hash::make('Scm2025!')
+        ]);
+        $sec->assignRole('Security');
     }
 }
