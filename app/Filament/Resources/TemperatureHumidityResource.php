@@ -3,11 +3,13 @@
 namespace App\Filament\Resources;
 
 use Carbon\Carbon;
+use App\Models\Room;
 use App\Models\Location;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 use App\Models\SerialNumber;
+use App\Models\RoomTemperature;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use App\Models\TemperatureHumidity;
@@ -66,34 +68,36 @@ class TemperatureHumidityResource extends Resource
                         ->required(),   
                 ]),
                 Section::make('Location & Storage Temperature Standards')
-                    ->columns(3)
+                    ->columns(4)
                     ->schema([
                         Select::make('location_id')
                             ->label('Location')
                             ->relationship('location', 'location_name')
                             ->preload()
                             ->searchable()
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                $location = Location::find($state);
-                                if ($location) {
-                                    $formatted = "{$location->temperature_start}°C to {$location->temperature_end}°C";
-                                    $set('observed_temperature', $formatted);
-                                    $set('temperature_start', $location->temperature_start);
-                                    $set('temperature_end', $location->temperature_end);
-                                }
-                                $set('serial_number_id', null);
-                            })
-                            ->afterStateHydrated(function ($state, callable $set) {
-                                $location = Location::find($state);
-                                if ($location) {
-                                    $set('observed_temperature', "{$location->temperature_start}°C to {$location->temperature_end}°C");
-                                    $set('temperature_start', $location->temperature_start);
-                                    $set('temperature_end', $location->temperature_end);
-                                }
-                            })
                             ->reactive()
+                            ->required(),
+                        Select::make('room_id')
+                            ->label('Room')
+                            ->relationship('room', 'room_name')
+                            ->options(function (callable $get) {
+                                $locationId = $get('location_id');
+
+                                if (!$locationId) {
+                                    return [];
+                                }
+
+                                return Room::where('location_id', $locationId)
+                                    ->pluck('room_name', 'id');
+                            })
+                            ->searchable()
+                            ->reactive()
+                            ->preload()
+                            ->required()
+                            ->disabled(fn (callable $get) => ! $get('location_id'))
                             ->afterStateUpdated(function ($state, callable $set) {
-                                $exists = TemperatureHumidity::where('location_id', $state)
+                                $set('serial_number_id', null);
+                                $exists = TemperatureHumidity::where('room_id', $state)
                                     ->whereDate('date', Carbon::today())
                                     ->exists();
 
@@ -103,29 +107,54 @@ class TemperatureHumidityResource extends Resource
                                         ->danger()
                                         ->send();
                                 }
-                            })
-                            ->required(),
+                            }),
                         Select::make('serial_number_id')
                             ->label('Serial Number')
                             ->options(function (callable $get) {
-                                $locationId = $get('location_id');
+                                $roomId = $get('room_id');
 
-                                if (!$locationId) {
+                                if (!$roomId) {
                                     return [];
                                 }
 
-                                return SerialNumber::where('location_id', $locationId)
+                                return SerialNumber::where('room_id', $roomId)
                                     ->pluck('serial_number', 'id');
                             })
                             ->searchable()
                             ->required()
-                            ->disabled(fn (callable $get) => ! $get('location_id'))
+                            ->disabled(fn (callable $get) => ! $get('room_id'))
                             ->preload()
                             ->required(),
-                        TextInput::make('observed_temperature')
-                            ->label('Storage Temperature Standards')
-                            ->disabled()
-                            ->dehydrated(false),
+                        Select::make('room_temperature_id')
+                            ->label('Room Temperature Standards')
+                            ->relationship('roomTemperature', 'temperature_start')
+                            ->options(function (callable $get) {
+                                $roomId = $get('room_id');
+                                if (!$roomId) {
+                                    return [];
+                                }
+                                return RoomTemperature::where('room_id', $roomId)
+                                    ->get()
+                                    ->mapWithKeys(function ($item) {
+                                        $label = "{$item->temperature_start}°C to {$item->temperature_end}°C";
+                                        return [$item->id => $label];
+                                    })
+                                    ->toArray();
+                            })
+                            ->searchable()
+                            ->reactive()
+                            ->preload()
+                            ->required()
+                            ->disabled(fn (callable $get) => ! $get('room_id'))
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $roomTemperature = RoomTemperature::find($state);
+                                if ($roomTemperature) {
+                                    $formatted = "{$roomTemperature->temperature_start}°C to {$roomTemperature->temperature_end}°C";
+                                    $set('observed_temperature', $formatted);
+                                    $set('temperature_start', $roomTemperature->temperature_start);
+                                    $set('temperature_end', $roomTemperature->temperature_end);
+                                }
+                            }),
                         Hidden::make('temperature_start'),
                         Hidden::make('temperature_end')
                     ]),

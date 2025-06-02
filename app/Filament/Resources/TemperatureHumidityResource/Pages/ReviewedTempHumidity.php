@@ -33,8 +33,10 @@ class ReviewedTempHumidity extends ListRecords
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_reviewed', false)
             ->whereNotNull('time_0800')->whereNotNull('time_1100')->whereNotNull('time_1400')->whereNotNull('time_1700')
+            ->whereNotNull('time_2000')->whereNotNull('time_2300')->whereNotNull('time_0200')->whereNotNull('time_0500')
             ->whereNotNull('temp_0800')->whereNotNull('temp_1100')->whereNotNull('temp_1400')->whereNotNull('temp_1700')
-            ->whereNotNull('rh_0800')->whereNotNull('rh_1100')->whereNotNull('rh_1400')->whereNotNull('rh_1700'))
+            ->whereNotNull('temp_2000')->whereNotNull('temp_2300')->whereNotNull('temp_0200')->whereNotNull('temp_0500')
+            ->whereNotNull('rh_0800')->whereNotNull('rh_1100')->whereNotNull('rh_1400')->whereNotNull('rh_1700')->whereNotNull('rh_2000')->whereNotNull('rh_2300')->whereNotNull('rh_0200')->whereNotNull('rh_0500'))
             ->emptyStateHeading('No pending review data is found')
             ->columns([
                 TextColumn::make('date')
@@ -71,7 +73,6 @@ class ReviewedTempHumidity extends ListRecords
                         $pic1400 = $record->pic_1400 ?? '-';
                         return "Time: $time1400 <br> Temp: $temp1400 °C <br> Humidity: $rh1400% <br> PIC: $pic1400";
                     })->html(),
-                    
                 TextColumn::make('1700_data')
                     ->label('17:00')
                     ->getStateUsing(function ($record) {
@@ -80,6 +81,42 @@ class ReviewedTempHumidity extends ListRecords
                         $rh1700 = $record->rh_1700 ?? '-';
                         $pic1700 = $record->pic_1700 ?? '-';
                         return "Time: $time1700 <br> Temp: $temp1700 °C <br> Humidity: $rh1700% <br> PIC: $pic1700";
+                    })->html(),
+                TextColumn::make('2000_data')
+                    ->label('20:00')
+                    ->getStateUsing(function ($record) {
+                        $temp2000 = $record->temp_2000 ?? '-';
+                        $time2000 = $record->time_2000 ? Carbon::parse($record->time_2000)->format('H:i') : '-';
+                        $rh2000 = $record->rh_2000 ?? '-';
+                        $pic2000 = $record->pic_2000 ?? '-';
+                        return "Time: $time2000 <br> Temp: $temp2000 °C <br> Humidity: $rh2000% <br> PIC: $pic2000";
+                    })->html(),
+                TextColumn::make('2300_data')
+                    ->label('23:00')
+                    ->getStateUsing(function ($record) {
+                        $temp2300 = $record->temp_2300 ?? '-';
+                        $time2300 = $record->time_2300 ? Carbon::parse($record->time_2300)->format('H:i') : '-';
+                        $rh2300 = $record->rh_2300 ?? '-';
+                        $pic2300 = $record->pic_2300 ?? '-';
+                        return "Time: $time2300 <br> Temp: $temp2300 °C <br> Humidity: $rh2300% <br> PIC: $pic2300";
+                    })->html(),
+                TextColumn::make('0200_data')
+                    ->label('02:00')
+                    ->getStateUsing(function ($record) {
+                        $temp0200 = $record->temp_0200 ?? '-';
+                        $time0200 = $record->time_0200 ? Carbon::parse($record->time_0200)->format('H:i') : '-';
+                        $rh0200 = $record->rh_0200 ?? '-';
+                        $pic0200 = $record->pic_0200 ?? '-';
+                        return "Time: $time0200 <br> Temp: $temp0200 °C <br> Humidity: $rh0200% <br> PIC: $pic0200";
+                    })->html(),
+                TextColumn::make('0500_data')
+                    ->label('05:00')
+                    ->getStateUsing(function ($record) {
+                        $temp0500 = $record->temp_0500 ?? '-';
+                        $time0500 = $record->time_0500 ? Carbon::parse($record->time_0500)->format('H:i') : '-';
+                        $rh0500 = $record->rh_0500 ?? '-';
+                        $pic0500 = $record->pic_0500 ?? '-';
+                        return "Time: $time0500 <br> Temp: $temp0500 °C <br> Humidity: $rh0500% <br> PIC: $pic0500";
                     })->html(),
                 TextColumn::make('reviewed_by')
                     ->label('Reviewed By')

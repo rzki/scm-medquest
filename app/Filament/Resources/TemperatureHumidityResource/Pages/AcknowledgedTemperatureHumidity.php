@@ -32,8 +32,11 @@ class AcknowledgedTemperatureHumidity extends listRecords
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->orderByDesc('date')->where('is_acknowledged', false)
             ->whereNotNull('time_0800')->whereNotNull('time_1100')->whereNotNull('time_1400')->whereNotNull('time_1700')
+            ->whereNotNull('time_2000')->whereNotNull('time_2300')->whereNotNull('time_0200')->whereNotNull('time_0500')
             ->whereNotNull('temp_0800')->whereNotNull('temp_1100')->whereNotNull('temp_1400')->whereNotNull('temp_1700')
-            ->whereNotNull('rh_0800')->whereNotNull('rh_1100')->whereNotNull('rh_1400')->whereNotNull('rh_1700'))
+            ->whereNotNull('temp_2000')->whereNotNull('temp_2300')->whereNotNull('temp_0200')->whereNotNull('temp_0500')
+            ->whereNotNull('rh_0800')->whereNotNull('rh_1100')->whereNotNull('rh_1400')->whereNotNull('rh_1700')
+            ->whereNotNull('rh_2000')->whereNotNull('rh_2300')->whereNotNull('rh_0200')->whereNotNull('rh_0500'))
             ->emptyStateHeading('No pending acknowledged data is found')
             ->columns([
                 TextColumn::make('date')

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TemperatureHumidityResource\Pages;
 
+use App\Models\RoomTemperature;
 use Carbon\Carbon;
 use App\Models\Location;
 use Illuminate\Support\Str;
@@ -17,15 +18,19 @@ class CreateTemperatureHumidity extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['temperatureId'] = Str::orderedUuid();
+        $data['serial_number_id'] = $data['serial_number_id'] ?? null; // Ensure serial number is set
+        $data['location_id'] = $data['location_id'] ?? null; // Ensure location is set
+        $data['room_id'] = $data['room_id'] ?? null; // Ensure room is set
+        $data['room_temperature_id'] = $data['room_temperature_id'] ?? null; // Ensure room temperature is set
         // Ensure temperature fields are set
         $tempFields = ['temp_0800', 'temp_1100', 'temp_1400', 'temp_1700', 'temp_2000', 'temp_2300', 'temp_0200', 'temp_0500'];
         foreach ($tempFields as $temp) {
             $data[$temp] = $data[$temp] ?? null;
         }
         // Store observed temperature range
-        $location = Location::find($data['location_id']);
-        $minTemp = $location->temperature_start;
-        $maxTemp = $location->temperature_end;
+        $roomTemp = RoomTemperature::find($data['room_id']);
+        $minTemp = $roomTemp->temperature_start;
+        $maxTemp = $roomTemp->temperature_end;
 
         $deviationDetected = false;
 
@@ -75,8 +80,10 @@ class CreateTemperatureHumidity extends CreateRecord
         $temperatureHumidity = $this->record;
         // Retrieve the temperature range from the location
         $location = $temperatureHumidity->location;
-        $minTemp = $location->temperature_start;
-        $maxTemp = $location->temperature_end;
+        $room = $temperatureHumidity->room;
+        $roomTemp = $temperatureHumidity->roomTemperature;
+        $minTemp = $roomTemp->temperature_start;
+        $maxTemp = $roomTemp->temperature_end;
         // Define temperature fields linked to their respective time fields
         $timeSlots = [
             'temp_0800' => 'time_0800',
@@ -98,6 +105,8 @@ class CreateTemperatureHumidity extends CreateRecord
                 $deviationData[] = [
                     'temperature_id' => $temperatureHumidity->id,
                     'location_id' => $temperatureHumidity->location_id,
+                    'room_id' => $temperatureHumidity->room_id,
+                    'room_temperature_id' => $temperatureHumidity->room_temperature_id,
                     'serial_number_id' => $temperatureHumidity->serial_number_id,
                     'time' => $inputtedTime,
                     'temperature_deviation' => $tempValue,
@@ -112,7 +121,7 @@ class CreateTemperatureHumidity extends CreateRecord
         $recipient = auth()->user();
         Notification::make()
             ->success()
-            ->title('New Temperature & Humidity for '. $location->location_name .' created')
+            ->title('New Temperature & Humidity for '.$room->room_name.' '. $location->location_name .' created')
             ->body('Please check the Temperature & Humidity page for more details.')
             ->actions([
                 Action::make('View')
@@ -133,7 +142,9 @@ class CreateTemperatureHumidity extends CreateRecord
             return TemperatureDeviationResource::getUrl('create',[
                 'temp_id' => $deviations[0]['temperature_id'],
                 'location_id' => $deviations[0]['location_id'],
-                'serial_number' => $deviations[0]['serial_number_id'],
+                'room_id' => $deviations[0]['room_id'],
+                'room_temperature_id' => $deviations[0]['room_temperature_id'],
+                'serial_number_id' => $deviations[0]['serial_number_id'],
                 'time' => $deviations[0]['time'],
                 'temperature_deviation' => $deviations[0]['temperature_deviation']
             ]); // Redirect to Deviation form
