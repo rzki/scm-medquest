@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class SerialNumber extends Model
 {
     protected $guarded = ['id'];
-    public function devices()
+    public function room()
     {
-        return $this->belongsTo(Device::class, 'device_id', 'id');
+        return $this->belongsTo(Room::class);
     }
 }

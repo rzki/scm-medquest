@@ -20,7 +20,8 @@ class SerialNumberResource extends Resource
 {
     protected static ?string $model = SerialNumber::class;
 
-    protected static ?string $navigationGroup = 'Location & Serial Number';
+    protected static ?string $navigationGroup = 'Location Management';
+    protected static ?int $navigationSort = 4;
     public static function canViewAny(): bool
     {
         return auth()->user()->hasRole(['Super Admin', 'Admin']);
@@ -29,9 +30,9 @@ class SerialNumberResource extends Resource
     {
         return $form
             ->schema([
-                Select::make('location_id')
-                    ->relationship('locations', 'location_name')
-                    ->label('Location')
+                Select::make('room_id')
+                    ->relationship('room', 'room_name')
+                    ->label('Room')
                     ->searchable()
                     ->preload()
                     ->required(),
@@ -46,8 +47,8 @@ class SerialNumberResource extends Resource
         return $table
             ->modifyQueryUsing(fn ($query) => $query->orderByDesc('created_at'))
             ->columns([
-                TextColumn::make('locations.location_name')
-                    ->label('Location')
+                TextColumn::make('room.room_name')
+                    ->label('Room')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('serial_number')
