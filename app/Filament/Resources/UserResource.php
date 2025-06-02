@@ -6,14 +6,16 @@ use Filament\Forms;
 use App\Models\User;
 use Filament\Tables;
 use Filament\Forms\Form;
-use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\Action;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\BulkActionGroup;
@@ -73,8 +75,14 @@ class UserResource extends Resource
                     ->relationship('roles', 'name', fn (Builder $query) => $query->where('id', '!=', 1))
             ])
             ->actions([
+                Action::make('resetPassword')
+                    ->label('Reset Password')
+                    ->action(fn (User $record) => self::resetPassword($record))
+                    ->requiresConfirmation()
+                    ->color('success')
+                    ->icon('heroicon-o-key'),
                 EditAction::make(),
-                DeleteAction::make()
+                DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
@@ -82,7 +90,11 @@ class UserResource extends Resource
                 ]),
             ]);
     }
-
+    public static function resetPassword(User $record)
+    {
+        $record->password = Hash::make('Scm2025!');
+        $record->save();
+    }
     public static function getRelations(): array
     {
         return [
