@@ -25,3 +25,4 @@ scm_logs
 .continue/*
 public/.htaccess
 app/Providers/AppServiceProvider.php
+public/.htaccess
