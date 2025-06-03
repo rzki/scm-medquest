@@ -106,13 +106,13 @@ class DashboardPanelProvider extends PanelProvider
                 ->icon('heroicon-o-clipboard-document-list')
                 ->collapsed(true),
                 NavigationGroup::make()
+                ->label('Location Management')
+                ->icon('heroicon-o-map-pin')
+                ->collapsed(true),
+                NavigationGroup::make()
                 ->label('Admin Settings')
                 ->icon('heroicon-o-cog')
                 ->collapsed(true),
-                NavigationGroup::make()
-                ->label('Location Management')
-                ->icon('heroicon-o-map-pin')
-                ->collapsed(true)
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
