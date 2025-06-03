@@ -26,6 +26,6 @@ class TemperatureDeviation extends Model
     }
     public function serialNumber()
     {
-        return $this->belongsTo(SerialNumber::class,'sn_id', 'id');
+        return $this->belongsTo(SerialNumber::class,'serial_number_id', 'id');
     }
 }

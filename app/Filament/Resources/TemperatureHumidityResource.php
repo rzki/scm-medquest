@@ -640,14 +640,20 @@ class TemperatureHumidityResource extends Resource
                             ->formatStateUsing(fn ($record) => $record->acknowledged_by ? $record->acknowledged_by : '-'),
                     ]),
                 InfoSection::make('Location & Storage Temperature Standards')
-                    ->columns(2)
+                    ->columns(4)
                     ->schema([
-                        TextEntry::make('location')
+                        TextEntry::make('location_id')
                             ->label('Location')
-                            ->formatStateUsing(fn ($record) => $record->location->location_name.' / '.$record->location->serial_number),
-                        TextEntry::make('location.temperature_start')
+                            ->formatStateUsing(fn ($record) => $record->location->location_name),
+                            TextEntry::make('room_id')
+                                ->label('Room')
+                                ->formatStateUsing(fn ($record) => $record->room->room_name),
+                            TextEntry::make('serial_number_id')
+                                ->label('Serial Number')
+                                ->formatStateUsing(fn ($record) => $record->serialNumber->serial_number),
+                        TextEntry::make('room_temperature_id')
                             ->label('Storage Temperature Standards')
-                            ->formatStateUsing(fn ($record) => $record->location->temperature_start.'°C to '.$record->location->temperature_end.'°C'),
+                            ->formatStateUsing(fn ($record) => $record->roomTemperature->temperature_start.'°C to '.$record->roomTemperature->temperature_end.'°C'),
                     ]),
                 InfoSection::make('Time Range')
                     ->columns(2)
