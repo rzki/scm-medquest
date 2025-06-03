@@ -4,7 +4,6 @@
     </IfModule>
 
     RewriteEngine On
-    RewriteBase /scm-medquest/
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
