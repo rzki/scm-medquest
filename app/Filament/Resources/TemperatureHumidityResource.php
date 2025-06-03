@@ -386,7 +386,7 @@ class TemperatureHumidityResource extends Resource
                         
                         $color = '';
                         if ($temp0800 !== '-') {
-                            if ($temp0800 < $record->location->temperature_start || $temp0800 > $record->location->temperature_end) {
+                            if ($temp0800 < $record->roomTemperature->temperature_start || $temp0800 > $record->roomTemperature->temperature_end) {
                                 $color = 'color: red; font-weight: bold;';
                             }
                         }
@@ -403,7 +403,7 @@ class TemperatureHumidityResource extends Resource
                         
                         $color = '';
                         if ($temp1100 !== '-') {
-                            if ($temp1100 < $record->location->temperature_start || $temp1100 > $record->location->temperature_end) {
+                            if ($temp1100 < $record->roomTemperature->temperature_start || $temp1100 > $record->roomTemperature->temperature_end) {
                                 $color = 'color: red; font-weight: bold;';
                             }
                         }
@@ -420,7 +420,7 @@ class TemperatureHumidityResource extends Resource
                         
                         $color = '';
                         if ($temp1400 !== '-') {
-                            if ($temp1400 < $record->location->temperature_start || $temp1400 > $record->location->temperature_end) {
+                            if ($temp1400 < $record->roomTemperature->temperature_start || $temp1400 > $record->roomTemperature->temperature_end) {
                                 $color = 'color: red; font-weight: bold;';
                             }
                         }
@@ -437,7 +437,7 @@ class TemperatureHumidityResource extends Resource
                         
                         $color = '';
                         if ($temp1700 !== '-') {
-                            if ($temp1700 < $record->location->temperature_start || $temp1700 > $record->location->temperature_end) {
+                            if ($temp1700 < $record->roomTemperature->temperature_start || $temp1700 > $record->roomTemperature->temperature_end) {
                                 $color = 'color: red; font-weight: bold;';
                             }
                         }
@@ -454,7 +454,7 @@ class TemperatureHumidityResource extends Resource
                         
                         $color = '';
                         if ($temp2000 !== '-') {
-                            if ($temp2000 < $record->location->temperature_start || $temp2000 > $record->location->temperature_end) {
+                            if ($temp2000 < $record->roomTemperature->temperature_start || $temp2000 > $record->roomTemperature->temperature_end) {
                                 $color = 'color: red; font-weight: bold;';
                             }
                         }
@@ -471,7 +471,7 @@ class TemperatureHumidityResource extends Resource
                         
                         $color = '';
                         if ($temp2300 !== '-') {
-                            if ($temp2300 < $record->location->temperature_start || $temp2300 > $record->location->temperature_end) {
+                            if ($temp2300 < $record->roomTemperature->temperature_start || $temp2300 > $record->roomTemperature->temperature_end) {
                                 $color = 'color: red; font-weight: bold;';
                             }
                         }
@@ -488,7 +488,7 @@ class TemperatureHumidityResource extends Resource
                         
                         $color = '';
                         if ($temp0200 !== '-') {
-                            if ($temp0200 < $record->location->temperature_start || $temp0200 > $record->location->temperature_end) {
+                            if ($temp0200 < $record->roomTemperature->temperature_start || $temp0200 > $record->roomTemperature->temperature_end) {
                                 $color = 'color: red; font-weight: bold;';
                             }
                         }
@@ -505,7 +505,7 @@ class TemperatureHumidityResource extends Resource
                         
                         $color = '';
                         if ($temp0500 !== '-') {
-                            if ($temp0500 < $record->location->temperature_start || $temp0500 > $record->location->temperature_end) {
+                            if ($temp0500 < $record->roomTemperature->temperature_start || $temp0500 > $record->roomTemperature->temperature_end) {
                                 $color = 'color: red; font-weight: bold;';
                             }
                         }
