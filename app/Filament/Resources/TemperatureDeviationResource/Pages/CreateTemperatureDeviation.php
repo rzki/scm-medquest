@@ -17,17 +17,19 @@ class CreateTemperatureDeviation extends CreateRecord
         parent::mount();
 
         $locationId = request()->get('location_id');
+        $roomId = request()->get('room_id');
+        $roomTemperatureId = request()->get('room_temperature_id');
+        $serialNumberId = request()->get('serial_number_id');
         $time = request()->get('time');
-        if ($locationId && $location = Location::find($locationId)) {
+        if ($locationId && $roomId && $roomTemperatureId && $serialNumberId) {
             $this->form->fill([
-                'location_id' => $location->id,
                 'temperature_humidity_id' => request()->get('temp_id'),
+                'location_id' => $locationId,
+                'room_id' => $roomId,
+                'room_temperature_id' => $roomTemperatureId,
+                'serial_number_id' => $serialNumberId,
                 'date' => Carbon::now(),
                 'time' => $time ? Carbon::createFromFormat('H:i', $time)->format('H:i') : null,
-                'serial_number' => $location->serial_number,
-                'observed_temperature' => "{$location->temperature_start}°C to {$location->temperature_end}°C",
-                'temperature_start' => $location->temperature_start,
-                'temperature_end' => $location->temperature_end,
                 'temperature_deviation' => request()->get('temperature_deviation'),
             ]);
         }

@@ -8,13 +8,21 @@ class TemperatureDeviation extends Model
 {
     protected $guarded = ['id'];
 
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
+    }
+    public function room()
+    {
+        return $this->belongsTo(Room::class);
+    }
+    public function roomTemperature()
+    {
+        return $this->belongsTo(RoomTemperature::class);
+    }
     public function temperatureHumidity()
     {
         return $this->belongsTo(TemperatureHumidity::class);
-    }
-    public function device()
-    {
-        return $this->belongsTo(Device::class);
     }
     public function serialNumber()
     {

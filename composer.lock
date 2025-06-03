@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "23aa523cac2b808ed7ab457ffa80f7bb",
+    "content-hash": "5c6daa0a392d62aee261186a3ebe5c0f",
     "packages": [
         {
             "name": "althinect/filament-spatie-roles-permissions",
@@ -573,54 +573,6 @@
                 }
             ],
             "time": "2024-09-19T14:15:21+00:00"
-        },
-        {
-            "name": "da1shiq/lara-service-maker",
-            "version": "v1.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/rzki/lara-service-maker.git",
-                "reference": "7e83698848f23b2cc850f1f4b2cd28c7daf08e39"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/rzki/lara-service-maker/zipball/7e83698848f23b2cc850f1f4b2cd28c7daf08e39",
-                "reference": "7e83698848f23b2cc850f1f4b2cd28c7daf08e39",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/support": "^9|^10|^11|^12.0",
-                "php": "^8.1"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Da1shiq\\LaraMakeService\\MakeServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Da1shiq\\LaraMakeService\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Rizky Dhani",
-                    "email": "rizkydhani15@gmail.com"
-                }
-            ],
-            "description": "Library to enable Laravel devs to create Service class",
-            "support": {
-                "issues": "https://github.com/rzki/lara-service-maker/issues",
-                "source": "https://github.com/rzki/lara-service-maker/tree/v1.0.2"
-            },
-            "time": "2025-04-24T03:04:38+00:00"
         },
         {
             "name": "danharrin/date-format-converter",
@@ -11417,12 +11369,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }
