@@ -246,54 +246,126 @@ class TemperatureDeviationResource extends Resource
                     })
             ])
             ->headerActions([
+                
                 Action::make('custom_export')
                     ->label('Export')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->form([
-                        Select::make('location_id')
-                            ->label('Location')
-                            ->options(Location::pluck('location_name', 'id'))
-                            ->searchable()
-                            ->required(),
+                Select::make('location_id')
+                    ->label('Location')
+                    ->options(Location::pluck('location_name', 'id'))
+                    ->searchable()
+                    ->reactive()
+                    ->required(),
+                Select::make('room_id')
+                ->label('Room')
+                ->relationship('room', 'room_name')
+                ->options(function (callable $get) {
+                    $locationId = $get('location_id');
 
-                        Select::make('month_type')
-                            ->label('Month Type')
-                            ->options([
-                                'this_month' => 'This Month',
-                                'choose' => 'Choose Month',
-                            ])
-                            ->default('this_month')
-                            ->reactive(),
+                    if (!$locationId) {
+                        return [];
+                    }
 
-                        DatePicker::make('chosen_month')
-                            ->label('Choose Month')
-                            ->displayFormat('F Y')
-                            ->visible(fn ($get) => $get('month_type') === 'choose')
-                            ->required(fn ($get) => $get('month_type') === 'choose'),
-                    ])
-                    ->action(function (array $data) {
-                        $locationId = $data['location_id'];
-                        $location = Location::find($locationId);
+                    return Room::where('location_id', $locationId)
+                        ->pluck('room_name', 'id');
+                })
+                ->searchable()
+                ->reactive()
+                ->preload()
+                ->required()
+                ->disabled(fn (callable $get) => ! $get('location_id'))
+                ->afterStateUpdated(function ($state, callable $set) {
+                    $set('serial_number_id', null);
+                }),
 
-                        $query = TemperatureDeviation::query()->where('location_id', $locationId);
+                Select::make('serial_number_id')
+                    ->label('Serial Number')
+                    ->options(function (callable $get) {
+                        $roomId = $get('room_id');
 
-                        if ($data['month_type'] === 'this_month') {
-                            $month = now()->month;
-                            $year = now()->year;
-                        } else {
-                            $chosenMonth = Carbon::parse($data['chosen_month']);
-                            $month = $chosenMonth->month;
-                            $year = $chosenMonth->year;
+                        if (!$roomId) {
+                            return [];
                         }
 
-                        $records = $query->get();
-
-                        $monthName = strtoupper(Carbon::createFromDate($year, $month)->format('M')); // e.g., "April"
-                        $sluggedLocation = strtoupper(Str::slug($location->location_name, '_'));
-                        $filename = "TemperatureDeviation_{$monthName}{$year}_{$sluggedLocation}.xlsx";
-
-                        return Excel::download(new TemperatureDeviationExport($records), $filename);
+                        return SerialNumber::where('room_id', $roomId)
+                            ->pluck('serial_number', 'id');
                     })
+                    ->searchable()
+                    ->required()
+                    ->disabled(fn (callable $get) => ! $get('room_id'))
+                    ->preload()
+                    ->required(),
+                Select::make('room_temperature_id')
+                    ->label('Room Temperature Standards')
+                    ->relationship('roomTemperature', 'temperature_start')
+                    ->options(function (callable $get) {
+                        $roomId = $get('room_id');
+                        if (!$roomId) {
+                            return [];
+                        }
+                        return RoomTemperature::where('room_id', $roomId)
+                            ->get()
+                            ->mapWithKeys(function ($item) {
+                                $label = "{$item->temperature_start}°C to {$item->temperature_end}°C";
+                                return [$item->id => $label];
+                            })
+                            ->toArray();
+                    })
+                    ->searchable()
+                    ->reactive()
+                    ->preload()
+                    ->required()
+                    ->disabled(fn (callable $get) => ! $get('room_id')),
+                Select::make('month_type')
+                    ->label('Month Type')
+                    ->options([
+                        'this_month' => 'This Month',
+                        'choose' => 'Choose Month',
+                    ])
+                    ->default('this_month')
+                    ->reactive(),
+
+                DatePicker::make('chosen_month')
+                    ->label('Choose Month')
+                    ->displayFormat('F Y')
+                    ->visible(fn ($get) => $get('month_type') === 'choose')
+                    ->required(fn ($get) => $get('month_type') === 'choose'),
+            ])
+            ->action(function (array $data) {
+                $location_id = $data['location_id'];
+                $room_id = $data['room_id'] ?? null;
+                $serial_number_id = $data['serial_number_id'] ?? null;
+                $room_temperature_id = $data['room_temperature_id'] ?? null;
+                $location = Location::find($location_id);
+                $room = Room::find($room_id);
+                $serialNumber = SerialNumber::find($serial_number_id);
+                if ($data['month_type'] === 'this_month') {
+                    $month = now()->month;
+                    $year = now()->year;
+                } else {
+                    $chosenMonth = Carbon::parse($data['chosen_month']);
+                    $month = $chosenMonth->month;
+                    $year = $chosenMonth->year;
+                }
+                $records = TemperatureDeviation::query()
+                    ->where([
+                        ['location_id', '=', $location_id],
+                        ['room_id', '=', $room_id],
+                        ['serial_number_id', '=', $serial_number_id],
+                        ['room_temperature_id', '=', $room_temperature_id],
+                    ])
+                    ->whereMonth('date', $month)
+                    ->whereYear('date', $year)
+                    ->with(['location', 'room', 'serialNumber', 'roomTemperature'])
+                    ->get();
+
+                $monthName = strtoupper(Carbon::createFromDate($year, $month)->format('M'));
+                $sluggedLocation = strtoupper($location->location_name.'_'.$room->room_name.'_'.$serialNumber->serial_number);
+                $filename = "TemperatureDeviation_{$monthName}{$year}_{$sluggedLocation}.xlsx";
+
+                return Excel::download(new TemperatureDeviationExport($records), $filename);
+            })
             ])
             ->actions([
                 ViewAction::make(),
