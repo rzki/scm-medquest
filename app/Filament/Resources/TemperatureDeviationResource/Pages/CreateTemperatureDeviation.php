@@ -39,7 +39,9 @@ class CreateTemperatureDeviation extends CreateRecord
         $data['temperatureDeviationId'] = Str::orderedUuid();
         $data['date'] = Carbon::now();
         $data['temperature_deviation'] = request()->get('temperature_deviation') ?? $data['temperature_deviation'];
-        $data['pic'] = auth()->user()->initial.' ' . strtoupper(Carbon::now()->format('d M Y'));
+        $data['pic'] = auth()->user()->hasRole('Security') 
+            ? auth()->user()->name 
+            : auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
         return $data;
     }
     protected function getRedirectUrl(): string

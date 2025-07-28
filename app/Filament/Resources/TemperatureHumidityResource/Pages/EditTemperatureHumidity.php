@@ -29,18 +29,21 @@ class EditTemperatureHumidity extends EditRecord
         $minTemp = $location->temperature_start;
         $maxTemp = $location->temperature_end;
         // ✅ Auto-fill signature into current time window's PIC field
-        $now = Carbon::now()->timezone('Asia/Jakarta');
-        $signature = auth()->user()->initial.' '.strtoupper(now('Asia/Jakarta')->format('d M Y'));
+        $now = Carbon::now()->timezone('Asia/Jakarta');        
+        $signature = auth()->user()->hasRole('Security') 
+            ? auth()->user()->name 
+            : auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
+
 
         $timeWindows = [
-            'pic_0800' => ['start' => '08:00', 'end' => '11:30'],
-            'pic_1100' => ['start' => '11:31', 'end' => '14:30'],
-            'pic_1400' => ['start' => '14:31', 'end' => '17:30'],
-            'pic_1700' => ['start' => '17:31', 'end' => '20:30'],
-            'pic_2000' => ['start' => '20:31', 'end' => '23:30'],
-            'pic_2300' => ['start' => '23:31', 'end' => '02:30'],
-            'pic_0200' => ['start' => '02:31', 'end' => '05:30'],
-            'pic_0500' => ['start' => '05:31', 'end' => '08:30'],
+            'pic_0800' => ['start' => '08:00:00', 'end' => '08:30:59'],
+            'pic_1100' => ['start' => '11:00:00', 'end' => '11:30:59'],
+            'pic_1400' => ['start' => '14:00:00', 'end' => '17:30:59'],
+            'pic_1700' => ['start' => '17:00:00', 'end' => '20:30:59'],
+            'pic_2000' => ['start' => '20:00:00', 'end' => '23:30:59'],
+            'pic_2300' => ['start' => '23:00:00', 'end' => '02:30:59'],
+            'pic_0200' => ['start' => '02:00:00', 'end' => '05:30:59'],
+            'pic_0500' => ['start' => '05:00:00', 'end' => '08:30:59'],
         ];
 
         foreach ($timeWindows as $picField => $window) {
@@ -78,10 +81,14 @@ class EditTemperatureHumidity extends EditRecord
         $now = Carbon::now()->timezone('Asia/Jakarta');
 
         $timeWindows = [
-            'temp_0800' => ['start' => '08:00', 'end' => '11:30', 'time_field' => 'time_0800'],
-            'temp_1100' => ['start' => '11:31', 'end' => '14:30', 'time_field' => 'time_1100'],
-            'temp_1400' => ['start' => '14:31', 'end' => '17:30', 'time_field' => 'time_1400'],
-            'temp_1700' => ['start' => '17:31', 'end' => '19:30', 'time_field' => 'time_1700'],
+            'temp_0800' => ['start' => '08:00:00', 'end' => '08:30:59', 'time_field' => 'time_0800'],
+            'temp_1100' => ['start' => '11:00:00', 'end' => '11:30:59', 'time_field' => 'time_1100'],
+            'temp_1400' => ['start' => '14:00:00', 'end' => '14:30:59', 'time_field' => 'time_1400'],
+            'temp_1700' => ['start' => '17:00:00', 'end' => '17:30:59', 'time_field' => 'time_1700'],
+            'temp_2000' => ['start' => '20:00:00', 'end' => '20:30:59', 'time_field' => 'time_2000'],
+            'temp_2300' => ['start' => '23:00:00', 'end' => '23:30:59', 'time_field' => 'time_2300'],
+            'temp_0200' => ['start' => '02:00:00', 'end' => '02:30:59', 'time_field' => 'time_0200'],
+            'temp_0500' => ['start' => '05:00:00', 'end' => '05:30:59', 'time_field' => 'time_0500'],
         ];
 
         foreach ($timeWindows as $tempField => $window) {

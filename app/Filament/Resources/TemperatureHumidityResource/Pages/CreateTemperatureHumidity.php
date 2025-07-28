@@ -49,17 +49,19 @@ class CreateTemperatureHumidity extends CreateRecord
 
         // ✅ Automatically insert signature and date into the right PIC field
         $now = Carbon::now()->timezone('Asia/Jakarta');
-        $signature = auth()->user()->initial.' '.strtoupper(now('Asia/Jakarta')->format('d M Y'));
+        $signature = auth()->user()->hasRole('Security') 
+            ? auth()->user()->name 
+            : auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
 
         $timeWindows = [
-            'pic_0800' => ['start' => '08:00', 'end' => '11:30'],
-            'pic_1100' => ['start' => '11:31', 'end' => '14:30'],
-            'pic_1400' => ['start' => '14:31', 'end' => '17:30'],
-            'pic_1700' => ['start' => '17:31', 'end' => '20:30'],
-            'pic_2000' => ['start' => '20:31', 'end' => '23:30'],
-            'pic_2300' => ['start' => '23:31', 'end' => '02:30'],
-            'pic_0200' => ['start' => '02:31', 'end' => '05:30'],
-            'pic_0500' => ['start' => '05:31', 'end' => '08:30'],
+            'pic_0800' => ['start' => '08:00:00', 'end' => '08:30:59'],
+            'pic_1100' => ['start' => '11:00:00', 'end' => '11:30:59'],
+            'pic_1400' => ['start' => '14:00:00', 'end' => '17:30:59'],
+            'pic_1700' => ['start' => '17:00:00', 'end' => '20:30:59'],
+            'pic_2000' => ['start' => '20:00:00', 'end' => '23:30:59'],
+            'pic_2300' => ['start' => '23:00:00', 'end' => '02:30:59'],
+            'pic_0200' => ['start' => '02:00:00', 'end' => '05:30:59'],
+            'pic_0500' => ['start' => '05:00:00', 'end' => '08:30:59'],
         ];
 
         foreach ($timeWindows as $picField => $window) {

@@ -15,11 +15,10 @@ class EditTemperatureDeviation extends EditRecord
     protected static string $resource = TemperatureDeviationResource::class;
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        if(auth()->user()->hasRole(['Supply Chain Officer', 'Security'])) {
-            $data['pic'] = auth()->user()->initial.' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
-        }elseif(auth()->user()->hasRole('QA Staff')) {
-            $data['analyzer_pic'] = auth()->user()->initial.' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
-        }
+        auth()->user()->hasRole('Security') 
+            ? $data['pic'] = auth()->user()->name 
+            : $data['pic'] = auth()->user()->initial . ' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
+        $data['analyzer_pic'] = auth()->user()->initial.' ' . strtoupper(now('Asia/Jakarta')->format('d M Y'));
         return $data;
     }
     protected function getHeaderActions(): array
