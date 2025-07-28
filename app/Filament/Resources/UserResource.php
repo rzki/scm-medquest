@@ -67,17 +67,22 @@ class UserResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function ($query) {
-                $query->where('id', '!=', 1);
+                $query->where('id', '!=', 1)->orderByDesc('id');
             })
             ->columns([
                 TextColumn::make('name')
+                    ->searchable(),
+                TextColumn::make('username')
+                    ->searchable()
+                    ->label('Username'),
+                TextColumn::make('initial')
                     ->searchable(),
                 TextColumn::make('email')
                     ->searchable(),
                 TextColumn::make('roles.name')
                     ->searchable(),
                 IconColumn::make('password_change_required')
-                    ->label('Password Change Required')
+                    ->label('First Time Password Change')
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
                     ->falseIcon('heroicon-o-x-circle')
@@ -88,7 +93,7 @@ class UserResource extends Resource
                 SelectFilter::make('roles')
                     ->relationship('roles', 'name', fn (Builder $query) => $query->where('id', '!=', 1)),
                 Tables\Filters\TernaryFilter::make('password_change_required')
-                    ->label('Password Change Required')
+                    ->label('First Time Password Change')
                     ->placeholder('All users')
                     ->trueLabel('Required')
                     ->falseLabel('Not Required'),
