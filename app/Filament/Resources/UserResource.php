@@ -140,6 +140,14 @@ class UserResource extends Resource
                             $records->each(fn ($record) => $record->update(['password_change_required' => true]));
                         })
                         ->requiresConfirmation(),
+                    Tables\Actions\BulkAction::make('generate_username')
+                        ->label('Generate Username')
+                        ->icon('heroicon-o-user-circle')
+                        ->color('success')
+                        ->action(function ($records) {
+                            $records->each(fn ($record) => $record->update(['username' => substr(strtolower(str_replace(' ', '.', $record->name)), 0, 8)]));
+                        })
+                        ->requiresConfirmation(),
                 ]),
             ]);
     }
