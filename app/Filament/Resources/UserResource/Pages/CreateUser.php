@@ -15,8 +15,10 @@ class CreateUser extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['userId'] = Str::orderedUuid();
+        $data['username'] = substr(strtolower(str_replace(' ', '.', $data['name'])), 0, 8);
         $data['initial'] = Str::upper($data['initial']);
         $data['password'] = Hash::make('Scm2025!');
+        $data['password_change_required'] = $data['password_change_required'] ?? true;
         return $data;
     }
     protected function getRedirectUrl(): string
@@ -27,6 +29,7 @@ class CreateUser extends CreateRecord
     {
         return Notification::make()
             ->success()
-            ->title('User has been successfully created');
+            ->title('User created successfully')
+            ->body('They will be required to change their password on first login.');
     }
 }

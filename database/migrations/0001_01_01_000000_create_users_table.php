@@ -15,10 +15,13 @@ return new class extends Migration
             $table->id();
             $table->uuid('userId')->unique();
             $table->string('name');
+            $table->string('username', 8)->unique();
             $table->string('initial', 3);
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->boolean('password_change_required')->default(false);
+            $table->timestamp('password_changed_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

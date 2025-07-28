@@ -43,10 +43,25 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'password_change_required' => 'boolean',
+            'password_changed_at' => 'datetime',
         ];
     }
     public function canAccessPanel(Panel $panel): bool
     {
         return str_ends_with($this->email, '@medquest.co.id');
+    }
+
+    public function requiresPasswordChange(): bool
+    {
+        return $this->password_change_required;
+    }
+
+    public function markPasswordAsChanged(): void
+    {
+        $this->update([
+            'password_change_required' => false,
+            'password_changed_at' => now(),
+        ]);
     }
 }
