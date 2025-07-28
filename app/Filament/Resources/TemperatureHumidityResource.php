@@ -168,7 +168,13 @@ class TemperatureHumidityResource extends Resource
                             ->schema([
                                 TimePicker::make('time_0800')
                                     ->label('Time')
-                                    ->seconds(false),
+                                    ->seconds(false)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '08:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '08:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_0800')
                                     ->label('Temperature')
@@ -176,186 +182,332 @@ class TemperatureHumidityResource extends Resource
                                     ->inputMode('decimal')
                                     ->step(0.1)
                                     ->suffix('°C')
-                                    ->maxValue(100),
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '08:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '08:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_0800')
                                     ->label('Humidity')
                                     ->suffix('%')
                                     ->numeric()
-                                    ->maxValue(100),
-                            ])->disabled(fn () => 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') < '08:00' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '11:31'
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '08:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '08:30:59'
+                                        )
+                                    ),
+                            ])->disabled(fn (string $operation) => 
+                                    $operation === 'create' && (
+                                        Carbon::now('Asia/Jakarta')->format('H:i:s') < '08:00:00' || 
+                                        Carbon::now('Asia/Jakarta')->format('H:i:s') >= '08:30:59'
+                                    )
                             ),
-                            // ->dehydrated(),
                         Section::make('1100')
                             ->columns(3)
                             ->schema([
                                 TimePicker::make('time_1100')
                                     ->label('Time')
-                                    ->seconds(false),
+                                    ->seconds(false)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '11:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '11:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_1100')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->suffix('°C')
-                                    ->maxValue(100),
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '11:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '11:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_1100')
                                     ->label('Humidity')
                                     ->suffix('%')
                                     ->numeric()
-                                    ->maxValue(100),
-                            ])->disabled(fn () => 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') < '11:31' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '14:31'
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '11:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '11:30:59'
+                                        )
+                                    ),
+                            ])->disabled(fn (string $operation) => 
+                                    $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '11:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '11:30:59'
+                                    )
                             ),
-                                // ->dehydrated(),
                         Section::make('1400')
                             ->columns(3)
                             ->schema([
                                 TimePicker::make('time_1400')
                                     ->label('Time')
-                                    ->seconds(false),
+                                    ->seconds(false)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '14:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '14:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_1400')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->suffix('°C')
-                                    ->maxValue(100),
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '14:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '14:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_1400')
                                     ->label('Humidity')
                                     ->suffix('%')
                                     ->numeric()
-                                    ->maxValue(100),
-                            ])->disabled(fn () => 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') < '14:31' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '17:30'
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '14:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '14:30:59'
+                                        )
+                                    ),
+                            ])->disabled(fn (string $operation) => 
+                                    $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '14:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '14:30:59'
+                                    )
                             ),
-                                // ->dehydrated(),
                         Section::make('1700')
                             ->columns(3)
                             ->schema([
                                 TimePicker::make('time_1700')
                                     ->label('Time')
-                                    ->seconds(false),
+                                    ->seconds(false)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '17:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '17:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_1700')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->suffix('°C')
-                                    ->maxValue(100),
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '17:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '17:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_1700')
                                     ->label('Humidity')
                                     ->suffix('%')
                                     ->numeric()
-                                    ->maxValue(100),
-                            ])->disabled(fn () => 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') < '17:31' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '20:30'
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '17:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '17:30:59'
+                                        )
+                                    ),
+                            ])->disabled(fn (string $operation) => 
+                                    $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '17:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '17:30:59'
+                                    )
                             ),
-                                // ->dehydrated(),
                         Section::make('2000')
                             ->columns(3)
                             ->schema([
                                 TimePicker::make('time_2000')
                                     ->label('Time')
-                                    ->seconds(false),
+                                    ->seconds(false)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '20:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '20:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_2000')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->suffix('°C')
-                                    ->maxValue(100),
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '20:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '20:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_2000')
                                     ->label('Humidity')
                                     ->suffix('%')
                                     ->numeric()
-                                    ->maxValue(100),
-                            ])->disabled(fn () => 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') < '20:31' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '23:30'
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '20:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '20:30:59'
+                                        )
+                                    ),
+                            ])->disabled(fn (string $operation) => 
+                                    $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '20:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '20:30:59'
+                                    )
                             ),
-                                // ->dehydrated(),
                         Section::make('2300')
                             ->columns(3)
                             ->schema([
                                 TimePicker::make('time_2300')
                                     ->label('Time')
-                                    ->seconds(false),
+                                    ->seconds(false)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '23:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '23:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_2300')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->suffix('°C')
-                                    ->maxValue(100),
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '23:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '23:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_2300')
                                     ->label('Humidity')
                                     ->suffix('%')
                                     ->numeric()
-                                    ->maxValue(100),
-                            ])->disabled(fn () => 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') < '23:31' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '02:30'
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '23:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '23:30:59'
+                                        )
+                                    ),
+                            ])->disabled(fn (string $operation) => 
+                                    $operation === 'create' && (
+                                        Carbon::now('Asia/Jakarta')->format('H:i:s') < '23:00:00' || 
+                                        Carbon::now('Asia/Jakarta')->format('H:i:s') >= '23:30:59'
+                                    )
                             ),
-                                // ->dehydrated(),
                         Section::make('0200')
                             ->columns(3)
                             ->schema([
                                 TimePicker::make('time_0200')
                                     ->label('Time')
-                                    ->seconds(false),
+                                    ->seconds(false)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '02:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '02:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_0200')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->suffix('°C')
-                                    ->maxValue(100),
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '02:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '02:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_0200')
                                     ->label('Humidity')
                                     ->suffix('%')
                                     ->numeric()
-                                    ->maxValue(100),
-                            ])->disabled(fn () => 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') < '02:31' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '05:30'
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '02:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '02:30:59'
+                                        )
+                                    ),
+                            ])->disabled(fn (string $operation) => 
+                                    $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '02:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '02:30:59'
+                                    )
                             ),
-                                // ->dehydrated(),
                         Section::make('0500')
                             ->columns(3)
                             ->schema([
                                 TimePicker::make('time_0500')
                                     ->label('Time')
-                                    ->seconds(false),
+                                    ->seconds(false)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '05:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '05:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('temp_0500')
                                     ->label('Temperature')
                                     ->numeric()
                                     ->inputMode('decimal')
                                     ->suffix('°C')
-                                    ->maxValue(100),
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '05:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '05:30:59'
+                                        )
+                                    ),
                                     // ->required(Auth::user()->hasRole('Supply Chain Officer')),
                                 TextInput::make('rh_0500')
                                     ->label('Humidity')
                                     ->suffix('%')
                                     ->numeric()
-                                    ->maxValue(100),
-                            ])->disabled(fn () => 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') < '05:31' || 
-                                    Carbon::now('Asia/Jakarta')->format('H:i') >= '08:30'
+                                    ->maxValue(100)
+                                    ->readOnly(fn (string $operation) => 
+                                        $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '05:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '05:30:59'
+                                        )
+                                    ),
+                            ])->disabled(fn (string $operation) => 
+                                    $operation === 'create' && (
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') < '05:00:00' || 
+                                            Carbon::now('Asia/Jakarta')->format('H:i:s') >= '05:30:59'
+                                    )
                             ),
-                                // ->dehydrated(),
                     ])
             ])->columns(1);
     }
