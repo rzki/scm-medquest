@@ -82,12 +82,12 @@ class UserResource extends Resource
                 TextColumn::make('roles.name')
                     ->searchable(),
                 IconColumn::make('password_change_required')
-                    ->label('First Time Password Change')
+                    ->label('First Time Password Change?')
                     ->boolean()
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->trueColor('success')
-                    ->falseColor('danger'),
+                    ->trueIcon('heroicon-o-x-circle')
+                    ->falseIcon('heroicon-o-check-circle')
+                    ->trueColor('danger')
+                    ->falseColor('success'),
             ])
             ->filters([
                 SelectFilter::make('roles')
