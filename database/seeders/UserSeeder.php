@@ -14,6 +14,7 @@ class UserSeeder extends Seeder
         $superadmin = User::create([
             'userId' => Str::orderedUuid(),
             'name' => 'Superadmin',
+            'username' => 'sadmin',
             'initial' => 'SAM',
             'email' => 'superadmin@medquest.co.id',
             'password' => Hash::make('Superadmin2025!')
@@ -23,6 +24,7 @@ class UserSeeder extends Seeder
         $supplyChainManager = User::create([
             'userId' => Str::orderedUuid(),
             'name' => 'Supply Chain Manager',
+            'username' => 'scm.mgr',
             'initial' => 'SCM',
             'email' => 'scm@medquest.co.id',
             'password' => Hash::make('Scm2025!')
@@ -32,6 +34,7 @@ class UserSeeder extends Seeder
         $qaManager = User::create([
             'userId' => Str::orderedUuid(),
             'name' => 'QA Manager',
+            'username' => 'qa.mgr',
             'initial' => 'QAM',
             'email' => 'qam@medquest.co.id',
             'password' => Hash::make('Scm2025!')
@@ -41,6 +44,7 @@ class UserSeeder extends Seeder
         $sco = User::create([
             'userId' => Str::orderedUuid(),
             'name' => 'Supply Chain Officer',
+            'username' => 'sc.staff',
             'initial' => 'SCO',
             'email' => 'sco@medquest.co.id',
             'password' => Hash::make('Scm2025!')
@@ -50,6 +54,7 @@ class UserSeeder extends Seeder
         $qas = User::create([
             'userId' => Str::orderedUuid(),
             'name' => 'QA Staff',
+            'username' => 'qa.staff',
             'initial' => 'QAS',
             'email' => 'qas@medquest.co.id',
             'password' => Hash::make('Scm2025!')
@@ -59,6 +64,7 @@ class UserSeeder extends Seeder
         $sec = User::create([
             'userId' => Str::orderedUuid(),
             'name' => 'Security',
+            'username' => 'security',
             'initial' => 'SEC',
             'email' => 'sec@medquest.co.id',
             'password' => Hash::make('Scm2025!')

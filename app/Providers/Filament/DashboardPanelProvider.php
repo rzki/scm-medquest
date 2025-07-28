@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Login;
 use Filament\Enums\ThemeMode;
 use Filament\Pages;
 use Filament\Panel;
@@ -36,7 +37,7 @@ class DashboardPanelProvider extends PanelProvider
             ->default()
             ->id('dashboard')
             ->path('/')
-            ->login()
+            ->login(Login::class)
             ->profile(EditProfile::class)
             ->spa()
             ->brandLogo(asset('assets/images/LOGO-MEDQUEST-HD.png'))
@@ -132,6 +133,7 @@ class DashboardPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                \App\Http\Middleware\CheckPasswordChangeRequired::class,
             ]);
     }
 }

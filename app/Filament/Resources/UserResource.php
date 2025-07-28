@@ -12,8 +12,10 @@ use Filament\Tables\Actions\Action;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Toggle;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Filters\SelectFilter;
@@ -52,7 +54,12 @@ class UserResource extends Resource
                     ->label('Email')
                     ->email()
                     ->required(),
-                Select::make('roles')->relationship('roles', 'name')
+                Select::make('roles')->relationship('roles', 'name'),
+                Toggle::make('password_change_required')
+                    ->label('Require Password Change')
+                    ->default(true)
+                    ->helperText('User will be forced to change password on first login')
+                    ->hiddenOn('edit'),
             ]);
     }
 
@@ -69,32 +76,69 @@ class UserResource extends Resource
                     ->searchable(),
                 TextColumn::make('roles.name')
                     ->searchable(),
+                IconColumn::make('password_change_required')
+                    ->label('Password Change Required')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('danger'),
             ])
             ->filters([
                 SelectFilter::make('roles')
-                    ->relationship('roles', 'name', fn (Builder $query) => $query->where('id', '!=', 1))
+                    ->relationship('roles', 'name', fn (Builder $query) => $query->where('id', '!=', 1)),
+                Tables\Filters\TernaryFilter::make('password_change_required')
+                    ->label('Password Change Required')
+                    ->placeholder('All users')
+                    ->trueLabel('Required')
+                    ->falseLabel('Not Required'),
             ])
             ->actions([
                 Action::make('resetPassword')
                     ->label('Reset Password')
-                    ->action(fn (User $record) => self::resetPassword($record))
+                    ->action(function (User $record) {
+                        $record->update([
+                            'password' => Hash::make('Scm2025!'),
+                            'password_change_required' => true,
+                        ]);
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Reset Password')
+                    ->modalDescription('This will reset the password to "Scm2025!" and require the user to change it on next login.')
+                    ->color('warning')
+                    ->icon('heroicon-o-key'),
+                Action::make('generateUsername')
+                    ->label('Generate Username')
+                    ->action(fn (User $record) => $record->update(['username' => substr(strtolower(str_replace(' ', '.', $record->name)), 0, 8)]))
                     ->requiresConfirmation()
                     ->color('success')
-                    ->icon('heroicon-o-key'),
+                    ->icon('heroicon-o-user-circle')
+                    ->visible(fn (User $record) => empty($record->username)),
+                Action::make('forcePasswordChange')
+                    ->label('Force Password Change')
+                    ->action(fn (User $record) => $record->update(['password_change_required' => true]))
+                    ->requiresConfirmation()
+                    ->color('warning')
+                    ->icon('heroicon-o-exclamation-triangle')
+                    ->visible(fn (User $record) => !$record->password_change_required),
                 EditAction::make(),
                 DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('force_password_change')
+                        ->label('Force Password Change')
+                        ->icon('heroicon-o-exclamation-triangle')
+                        ->color('warning')
+                        ->action(function ($records) {
+                            $records->each(fn ($record) => $record->update(['password_change_required' => true]));
+                        })
+                        ->requiresConfirmation(),
                 ]),
             ]);
     }
-    public static function resetPassword(User $record)
-    {
-        $record->password = Hash::make('Scm2025!');
-        $record->save();
-    }
+
     public static function getRelations(): array
     {
         return [
