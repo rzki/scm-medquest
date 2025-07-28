@@ -82,7 +82,7 @@ class UserResource extends Resource
                 TextColumn::make('roles.name')
                     ->searchable(),
                 IconColumn::make('password_change_required')
-                    ->label('First Time Password Change?')
+                    ->label('First Pass Change?')
                     ->boolean()
                     ->trueIcon('heroicon-o-x-circle')
                     ->falseIcon('heroicon-o-check-circle')
