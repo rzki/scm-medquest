@@ -92,42 +92,43 @@ class FirstTimePasswordChange extends Page
         ];
     }
 
-    public function changePassword(): void
+    public function changePassword()
     {
         try {
             $data = $this->form->getState();
             
             $user = Auth::user();
             
-            // Update password
+            // Update password and mark as changed in a single transaction
             $user->update([
                 'password' => Hash::make($data['password']),
+                'password_change_required' => false,
+                'password_changed_at' => now(),
             ]);
-            
-            // Mark password as changed
-            $user->markPasswordAsChanged();
             
             // Clear the session flag
             session()->forget('password_change_required');
 
-            // Update session password hash
-            if (request()->hasSession()) {
-                request()->session()->put([
-                    'password_hash_web' => $data['password'],
-                ]);
-            }
-
             Notification::make()
                 ->success()
                 ->title('Password Changed Successfully')
-                ->body('Your password has been updated. You can now access the system.')
+                ->body('Your password has been updated. Redirecting to dashboard...')
                 ->send();
 
-            // Redirect to dashboard
-            $this->redirect('/', navigate: false);
+            // Use JavaScript redirect to the correct application path
+            $this->js('setTimeout(() => { window.location.href = "' . url('/') . '"; }, 1500);');
             
         } catch (Halt $exception) {
             return;
+        } catch (\Exception $e) {
+            Notification::make()
+                ->danger()
+                ->title('Error Changing Password')
+                ->body('An error occurred while changing your password. Please try again.')
+                ->send();
+                
+            // Log the error for debugging
+            \Log::error('Password change error: ' . $e->getMessage());
         }
     }
 

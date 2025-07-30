@@ -52,17 +52,6 @@ class UserResource extends Resource
                     ->label('Email')
                     ->email()
                     ->required(),
-                TextInput::make('password')
-                    ->label('Password')
-                    ->password()
-                    ->required(fn (string $operation): bool => $operation === 'create')
-                    ->dehydrated(fn ($state) => filled($state))
-                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
-                    ->helperText(fn (string $operation): string => 
-                        $operation === 'create' 
-                            ? 'Default password will be set if not provided.' 
-                            : 'Leave empty to keep current password.'
-                    ),
                 Select::make('location_id')
                     ->label('Location')
                     ->relationship('location', 'location_name')
@@ -70,7 +59,8 @@ class UserResource extends Resource
                     ->preload()
                     ->nullable()
                     ->helperText('Assign user to a specific location. Leave empty for admin users who can access all locations.'),
-                Select::make('roles')->relationship('roles', 'name'),
+                Select::make('roles')->relationship('roles', 'name')
+                    ->columnSpanFull(),
                 Toggle::make('password_change_required')
                     ->label('Require Password Change')
                     ->default(true)
@@ -169,6 +159,24 @@ class UserResource extends Resource
                             $records->each(fn ($record) => $record->update(['username' => substr(strtolower(str_replace(' ', '.', $record->name)), 0, 8)]));
                         })
                         ->requiresConfirmation(),
+                    Tables\Actions\BulkAction::make('assignLocationBP1')
+                        ->label('Assign to BizPark 1')
+                        ->icon('heroicon-o-map')
+                        ->color('primary')
+                        ->action(function ($records) {
+                            $records->each(fn ($record) => $record->update(['location_id' => 1]));
+                        })
+                        ->requiresConfirmation()
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('assignLocationBP2')
+                        ->label('Assign to BizPark 2')
+                        ->icon('heroicon-o-map')
+                        ->color('primary')
+                        ->action(function ($records) {
+                            $records->each(fn ($record) => $record->update(['location_id' => 2]));
+                        })
+                        ->requiresConfirmation()
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ]);
     }

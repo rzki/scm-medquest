@@ -14,8 +14,8 @@ trait HasLocationBasedAccess
     {
         $user = Auth::user();
         
-        // Super Admin and Admin can see all records
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        // Super Admin, Admin, Supply Chain Manager, and QA Manager can see all records
+        if ($user->hasRole(['Super Admin', 'Admin', 'Supply Chain Manager', 'QA Manager'])) {
             return $query;
         }
         
@@ -35,8 +35,8 @@ trait HasLocationBasedAccess
     {
         $user = Auth::user();
         
-        // Super Admin and Admin can access all locations
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        // Super Admin, Admin, Supply Chain Manager, and QA Manager can access all locations
+        if ($user->hasRole(['Super Admin', 'Admin', 'Supply Chain Manager', 'QA Manager'])) {
             return \App\Models\Location::pluck('id')->toArray();
         }
         

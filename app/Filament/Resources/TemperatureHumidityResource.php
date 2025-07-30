@@ -50,6 +50,12 @@ class TemperatureHumidityResource extends Resource
     protected static ?string $navigationLabel = 'All';
     protected static ?string $navigationGroup = 'Temperature & Humidity';
     protected static bool $shouldRegisterNavigation = false;
+    
+    public static function getEloquentQuery(): Builder
+    {
+        return static::applyLocationFilter(parent::getEloquentQuery());
+    }
+    
     // public static function canCreate(): bool
     // {
     //     return !TemperatureHumidity::whereDate('created_at', Carbon::today())->exists();
@@ -93,8 +99,8 @@ class TemperatureHumidityResource extends Resource
                             ->required()
                             ->default(function () {
                                 $user = Auth::user();
-                                // If user has specific location, default to that
-                                if ($user->location_id && !$user->hasRole(['Super Admin', 'Admin'])) {
+                                // If user has specific location and doesn't have admin-level roles, default to that
+                                if ($user->location_id && !$user->hasRole(['Super Admin', 'Admin', 'Supply Chain Manager', 'QA Manager'])) {
                                     return $user->location_id;
                                 }
                                 return null;
@@ -536,8 +542,7 @@ class TemperatureHumidityResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function ($query) {
-                $query = $query->orderByDesc('date');
-                return static::applyLocationFilter($query);
+                return $query->orderByDesc('date');
             })
             ->columns([
                 TextColumn::make('date')

@@ -49,6 +49,11 @@ class TemperatureDeviationResource extends Resource
     protected static ?string $navigationGroup = 'Temperature Deviation';
     protected static bool $shouldRegisterNavigation = false;
 
+    public static function getEloquentQuery(): Builder
+    {
+        return static::applyLocationFilter(parent::getEloquentQuery());
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -101,8 +106,8 @@ class TemperatureDeviationResource extends Resource
                             if (request()->get('location_id')) {
                                 return request()->get('location_id');
                             }
-                            // If user has specific location, default to that
-                            if ($user->location_id && !$user->hasRole(['Super Admin', 'Admin'])) {
+                            // If user has specific location and doesn't have admin-level roles, default to that
+                            if ($user->location_id && !$user->hasRole(['Super Admin', 'Admin', 'Supply Chain Manager', 'QA Manager'])) {
                                 return $user->location_id;
                             }
                             return null;
@@ -212,8 +217,7 @@ class TemperatureDeviationResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function ($query) {
-                $query = $query->orderByDesc('created_at');
-                return static::applyLocationFilter($query);
+                return $query->orderByDesc('created_at');
             })
             ->columns([
                 TextColumn::make('location.location_name')
