@@ -119,18 +119,6 @@ class UserResource extends Resource
                     ->trueLabel('Required')
                     ->falseLabel('Not Required'),
             ])
-            ->headerActions([
-                CreateAction::make()
-                    ->mutateFormDataUsing(function (array $data): array {
-                        // Set default password if not provided
-                        if (empty($data['password'])) {
-                            $data['password'] = Hash::make('Scm2025!');
-                        }
-                        // Set default password change requirement for new users
-                        $data['password_change_required'] = $data['password_change_required'] ?? true;
-                        return $data;
-                    }),
-            ])
             ->actions([
                 Action::make('resetPassword')
                     ->label('Reset Password')
