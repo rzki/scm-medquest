@@ -9,10 +9,23 @@ use Illuminate\Database\Eloquent\Model;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use App\Filament\Resources\TemperatureDeviationResource;
+use App\Traits\HasLocationBasedAccess;
 
 class EditTemperatureDeviation extends EditRecord
 {
+    use HasLocationBasedAccess;
+    
     protected static string $resource = TemperatureDeviationResource::class;
+
+    public function mount(int | string $record): void
+    {
+        parent::mount($record);
+        
+        // Check if user can access this record's location
+        if (!static::canAccessLocation($this->record->location_id)) {
+            abort(403, 'You do not have permission to access this record.');
+        }
+    }
     protected function mutateFormDataBeforeSave(array $data): array
     {
         auth()->user()->hasRole('Security') 

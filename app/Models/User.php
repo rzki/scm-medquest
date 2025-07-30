@@ -64,4 +64,31 @@ class User extends Authenticatable implements FilamentUser
             'password_changed_at' => now(),
         ]);
     }
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
+    }
+
+    public function hasAccessToLocation(int $locationId): bool
+    {
+        // Super Admin and Admin can access all locations
+        if ($this->hasRole(['Super Admin', 'Admin'])) {
+            return true;
+        }
+
+        // Regular users can only access their assigned location
+        return $this->location_id === $locationId;
+    }
+
+    public function getAccessibleLocationIds(): array
+    {
+        // Super Admin and Admin can access all locations
+        if ($this->hasRole(['Super Admin', 'Admin'])) {
+            return Location::pluck('id')->toArray();
+        }
+
+        // Regular users can only access their assigned location
+        return $this->location_id ? [$this->location_id] : [];
+    }
 }

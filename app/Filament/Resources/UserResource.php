@@ -54,6 +54,13 @@ class UserResource extends Resource
                     ->label('Email')
                     ->email()
                     ->required(),
+                Select::make('location_id')
+                    ->label('Location')
+                    ->relationship('location', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->nullable()
+                    ->helperText('Assign user to a specific location. Leave empty for admin users who can access all locations.'),
                 Select::make('roles')->relationship('roles', 'name'),
                 Toggle::make('password_change_required')
                     ->label('Require Password Change')
@@ -79,6 +86,11 @@ class UserResource extends Resource
                     ->searchable(),
                 TextColumn::make('email')
                     ->searchable(),
+                TextColumn::make('location.name')
+                    ->label('Location')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('All Locations'),
                 TextColumn::make('roles.name')
                     ->searchable(),
                 IconColumn::make('password_change_required')

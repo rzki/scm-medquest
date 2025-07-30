@@ -38,9 +38,12 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Infolists\Components\Section as InfoSection;
 use App\Filament\Resources\TemperatureDeviationResource\Pages;
+use App\Traits\HasLocationBasedAccess;
 
 class TemperatureDeviationResource extends Resource
 {
+    use HasLocationBasedAccess;
+    
     protected static ?string $model = TemperatureDeviation::class;
     protected static ?int $navigationSort = 1;
     protected static ?string $navigationGroup = 'Temperature Deviation';
@@ -82,8 +85,28 @@ class TemperatureDeviationResource extends Resource
                         }),                        
                         Select::make('location_id')
                         ->label('Location')
-                        ->relationship('location', 'location_name')
-                        ->default(fn() => request()->get('location_id')??null)
+                        ->relationship(
+                            'location', 
+                            'location_name',
+                            modifyQueryUsing: function (Builder $query) {
+                                $accessibleLocationIds = static::getAccessibleLocationIds();
+                                if (!empty($accessibleLocationIds)) {
+                                    $query->whereIn('id', $accessibleLocationIds);
+                                }
+                            }
+                        )
+                        ->default(function () {
+                            $user = Auth::user();
+                            // Check URL parameter first
+                            if (request()->get('location_id')) {
+                                return request()->get('location_id');
+                            }
+                            // If user has specific location, default to that
+                            if ($user->location_id && !$user->hasRole(['Super Admin', 'Admin'])) {
+                                return $user->location_id;
+                            }
+                            return null;
+                        })
                         ->preload()
                         ->searchable()
                         ->reactive()
@@ -188,7 +211,10 @@ class TemperatureDeviationResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn($query) => $query->orderByDesc('created_at'))
+            ->modifyQueryUsing(function ($query) {
+                $query = $query->orderByDesc('created_at');
+                return static::applyLocationFilter($query);
+            })
             ->columns([
                 TextColumn::make('location.location_name')
                     ->label('Location')

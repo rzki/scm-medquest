@@ -39,9 +39,12 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Infolists\Components\Section as InfoSection;
 use App\Filament\Resources\TemperatureHumidityResource\Pages;
+use App\Traits\HasLocationBasedAccess;
 
 class TemperatureHumidityResource extends Resource
 {
+    use HasLocationBasedAccess;
+    
     protected static ?string $model = TemperatureHumidity::class;
     protected static ?int $navigationSort = 0;
     protected static ?string $navigationLabel = 'All';
@@ -74,11 +77,28 @@ class TemperatureHumidityResource extends Resource
                     ->schema([
                         Select::make('location_id')
                             ->label('Location')
-                            ->relationship('location', 'location_name')
+                            ->relationship(
+                                'location', 
+                                'location_name',
+                                modifyQueryUsing: function (Builder $query) {
+                                    $accessibleLocationIds = static::getAccessibleLocationIds();
+                                    if (!empty($accessibleLocationIds)) {
+                                        $query->whereIn('id', $accessibleLocationIds);
+                                    }
+                                }
+                            )
                             ->preload()
                             ->searchable()
                             ->reactive()
-                            ->required(),
+                            ->required()
+                            ->default(function () {
+                                $user = Auth::user();
+                                // If user has specific location, default to that
+                                if ($user->location_id && !$user->hasRole(['Super Admin', 'Admin'])) {
+                                    return $user->location_id;
+                                }
+                                return null;
+                            }),
                         Select::make('room_id')
                             ->label('Room')
                             ->relationship('room', 'room_name')
@@ -515,7 +535,10 @@ class TemperatureHumidityResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn($query) => $query->orderByDesc('date'))
+            ->modifyQueryUsing(function ($query) {
+                $query = $query->orderByDesc('date');
+                return static::applyLocationFilter($query);
+            })
             ->columns([
                 TextColumn::make('date')
                     ->label('Date')

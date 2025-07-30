@@ -13,10 +13,23 @@ use Filament\Resources\Pages\EditRecord;
 use App\Filament\Resources\TemperatureHumidityResource;
 use App\Filament\Resources\TemperatureDeviationResource;
 use Filament\Notifications\Actions\Action as NotificationAction;
+use App\Traits\HasLocationBasedAccess;
 
 class EditTemperatureHumidity extends EditRecord
 {
+    use HasLocationBasedAccess;
+    
     protected static string $resource = TemperatureHumidityResource::class;
+
+    public function mount(int | string $record): void
+    {
+        parent::mount($record);
+        
+        // Check if user can access this record's location
+        if (!static::canAccessLocation($this->record->location_id)) {
+            abort(403, 'You do not have permission to access this record.');
+        }
+    }
     protected function mutateFormDataBeforeSave(array $data): array
     {
         // Ensure temperature fields are set
