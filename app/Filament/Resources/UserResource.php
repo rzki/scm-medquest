@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Forms\Components\TextInput;
@@ -24,10 +25,7 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use App\Filament\Resources\UserResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\UserResource\Pages\EditUser;
 use App\Filament\Resources\UserResource\Pages\ListUsers;
-use App\Filament\Resources\UserResource\Pages\CreateUser;
-use App\Filament\Resources\UserResource\RelationManagers;
 
 class UserResource extends Resource
 {
@@ -54,6 +52,17 @@ class UserResource extends Resource
                     ->label('Email')
                     ->email()
                     ->required(),
+                TextInput::make('password')
+                    ->label('Password')
+                    ->password()
+                    ->required(fn (string $operation): bool => $operation === 'create')
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
+                    ->helperText(fn (string $operation): string => 
+                        $operation === 'create' 
+                            ? 'Default password will be set if not provided.' 
+                            : 'Leave empty to keep current password.'
+                    ),
                 Select::make('location_id')
                     ->label('Location')
                     ->relationship('location', 'location_name')
@@ -66,7 +75,7 @@ class UserResource extends Resource
                     ->label('Require Password Change')
                     ->default(true)
                     ->helperText('User will be forced to change password on first login')
-                    ->hiddenOn('edit'),
+                    ->visible(fn (string $operation): bool => $operation === 'create'),
             ]);
     }
 
@@ -109,6 +118,18 @@ class UserResource extends Resource
                     ->placeholder('All users')
                     ->trueLabel('Required')
                     ->falseLabel('Not Required'),
+            ])
+            ->headerActions([
+                CreateAction::make()
+                    ->mutateFormDataUsing(function (array $data): array {
+                        // Set default password if not provided
+                        if (empty($data['password'])) {
+                            $data['password'] = Hash::make('Scm2025!');
+                        }
+                        // Set default password change requirement for new users
+                        $data['password_change_required'] = $data['password_change_required'] ?? true;
+                        return $data;
+                    }),
             ])
             ->actions([
                 Action::make('resetPassword')
@@ -175,8 +196,6 @@ class UserResource extends Resource
     {
         return [
             'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }
 }
