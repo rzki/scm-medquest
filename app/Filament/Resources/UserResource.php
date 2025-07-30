@@ -56,7 +56,7 @@ class UserResource extends Resource
                     ->required(),
                 Select::make('location_id')
                     ->label('Location')
-                    ->relationship('location', 'name')
+                    ->relationship('location', 'location_name')
                     ->searchable()
                     ->preload()
                     ->nullable()
